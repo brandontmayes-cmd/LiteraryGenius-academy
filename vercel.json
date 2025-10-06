@@ -4,4 +4,8 @@
 "outputDirectory": "dist",
 "rewrites": [{"source": "/(.*)", "destination": "/"}]
 }
+<<<<<<< HEAD
 '''
+=======
+'''
+>>>>>>> 9e9cc89fe706299d0783a6801b8e53019b57520f
