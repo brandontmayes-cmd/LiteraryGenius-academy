@@ -1,11 +1,4 @@
 {
-{
-  "devDependencies": {
-    "vite": "^5.0.0"
-  },
-  "scripts": {
-    "build": "vite build"
-  }
 }
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
