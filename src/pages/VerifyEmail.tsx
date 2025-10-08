@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-export function VerifyEmail() {
+export default function VerifyEmail() {
+
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Clock } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { supabase } from '../lib/supabase';
@@ -10,47 +10,28 @@ const plans = [
     name: 'Basic',
     price: 19,
     interval: 'month',
-    priceId: 'price_1SFNsgIvvCopH055YMXO77K0', // LiteraryGenius Basic - $19/month
-    features: [
-      'Core learning tools',
-      '5 assignments per month',
-      'Basic progress tracking',
-      'Email support',
-      'Mobile app access'
-    ]
+    priceId: 'price_1SFNsgIvvCopH055YMXO77K0',
+    trial: '7-day free trial',
+    features: ['Core learning tools', '5 assignments/month', 'Progress tracking', 'Email support', 'Mobile access']
   },
   {
     name: 'Premium',
     price: 29,
     interval: 'month',
-    priceId: 'price_1SFNvwIvvCopH055m8u5LrQg', // LiteraryGenius Premium - $29/month
+    priceId: 'price_1SFNvwIvvCopH055m8u5LrQg',
     popular: true,
-    features: [
-      'Everything in Basic',
-      'Unlimited AI tutoring',
-      'Unlimited assignments',
-      'Advanced analytics',
-      'Priority support',
-      'Custom learning paths'
-    ]
+    trial: '7-day free trial',
+    features: ['Everything in Basic', 'Unlimited AI tutoring', 'Unlimited assignments', 'Advanced analytics', 'Priority support']
   },
   {
     name: 'Enterprise',
     price: 49,
     interval: 'month',
-    priceId: 'price_1SFNxZIvvCopH055Kem1Y1OV', // LiteraryGenius Enterprise - $49/month
-    features: [
-      'Everything in Premium',
-      'Admin dashboard',
-      'Custom curriculum',
-      'Dedicated support',
-      'API access',
-      'White-label options'
-    ]
+    priceId: 'price_1SFNxZIvvCopH055Kem1Y1OV',
+    trial: '7-day free trial',
+    features: ['Everything in Premium', 'Admin dashboard', 'Custom curriculum', 'Dedicated support', 'API access']
   }
 ];
-
-
 
 export function SubscriptionPlans() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -65,7 +46,7 @@ export function SubscriptionPlans() {
       }
 
       const { data, error } = await supabase.functions.invoke('stripe-subscription-manager', {
-        body: { action: 'create-checkout', priceId, userId: user.id }
+        body: { action: 'create-checkout-session', priceId, userId: user.id, email: user.email }
       });
 
       if (error) throw error;
@@ -82,11 +63,14 @@ export function SubscriptionPlans() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
-          <p className="text-gray-600">Select the perfect plan for your learning journey</p>
+          <p className="text-gray-600 mb-4">Start with a 7-day free trial, no credit card required</p>
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full">
+            <Clock className="w-4 h-4" />
+            <span className="font-medium">7 days free, then ${plans[0].price}/month</span>
+          </div>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-
+        <div className="grid md:grid-cols-3 gap-8">
           {plans.map((plan) => (
             <Card key={plan.priceId} className={`p-8 relative ${plan.popular ? 'border-blue-500 border-2' : ''}`}>
               {plan.popular && (
@@ -96,16 +80,17 @@ export function SubscriptionPlans() {
               )}
               
               <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <div className="mb-6">
+              <div className="mb-2">
                 <span className="text-4xl font-bold">${plan.price}</span>
                 <span className="text-gray-600">/{plan.interval}</span>
               </div>
+              <p className="text-sm text-green-600 mb-6">{plan.trial}</p>
               
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-500" />
-                    <span>{feature}</span>
+                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -117,7 +102,7 @@ export function SubscriptionPlans() {
               >
                 {loading === plan.priceId ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
-                ) : 'Subscribe Now'}
+                ) : 'Start Free Trial'}
               </Button>
             </Card>
           ))}
