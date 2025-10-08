@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -115,10 +115,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data) {
         const user: User = {
-          id: data.user_id,
+          id: data.id,
           email: data.email,
-          firstName: data.first_name,
-          lastName: data.last_name,
+          firstName: data.first_name || '',
+          lastName: data.last_name || '',
           role: data.role,
           avatar: data.avatar_url,
           createdAt: data.created_at,
@@ -132,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+
   const createOAuthProfile = async (userId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -140,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase
         .from('user_profiles')
         .insert({
-          user_id: userId,
+          id: userId,
           email: user.email || '',
           first_name: user.user_metadata?.full_name?.split(' ')[0] || '',
           last_name: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
@@ -156,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'LOGIN_ERROR', payload: error.message });
     }
   };
+
 
 
   const login = async (credentials: LoginCredentials) => {
@@ -202,7 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error: profileError } = await supabase
           .from('user_profiles')
           .insert({
-            user_id: authData.user.id,
+            id: authData.user.id,
             email: data.email,
             first_name: data.firstName,
             last_name: data.lastName,
@@ -224,6 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
 
   const resendVerificationEmail = async () => {
     if (!pendingEmail) return;
@@ -339,14 +342,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           last_name: updates.lastName,
           avatar_url: updates.avatar,
         })
-        .eq('user_id', state.user.id);
+        .eq('id', state.user.id);
 
       if (error) throw error;
 
       const updatedUser = { ...state.user, ...updates };
       dispatch({ type: 'UPDATE_USER', payload: updatedUser });
     }
-  };
+  }
 
 
 
