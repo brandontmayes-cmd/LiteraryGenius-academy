@@ -20,13 +20,21 @@ import GroupChat from './GroupChat';
 import PeerReviewSystem from './PeerReviewSystem';
 import ParentAccessRequestManager from './ParentAccessRequestManager';
 import CurriculumBrowser from './CurriculumBrowser';
-import LessonViewer from './LessonViewer';
+import EnhancedLessonPlayer from './EnhancedLessonPlayer';
+import StandardsPracticeDashboard from './StandardsPracticeDashboard';
 import ComprehensiveDiagnosticTest from './ComprehensiveDiagnosticTest';
+
+
 import { BookOpen, Calendar, Clock, TrendingUp, Award, CheckCircle, AlertTriangle, Target, PenTool, Users } from 'lucide-react';
 import { AIWritingAssistant } from './AIWritingAssistant';
 import { WritingTemplatesLibrary } from './WritingTemplatesLibrary';
 import { AutomatedEssayScoring } from './AutomatedEssayScoring';
 import { PlagiarismDetectionSystem } from './PlagiarismDetectionSystem';
+import { UserMenu } from './UserMenu';
+import { MobileStudentDashboard } from './MobileStudentDashboard';
+import { useIsMobile } from '../hooks/use-mobile';
+import { PushNotificationPrompt } from './PushNotificationPrompt';
+
 
 import { useStudentData } from '../hooks/useStudentData';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,6 +44,7 @@ import { CardDescription } from './ui/card';
 
 
 export function StudentDashboard() {
+  const isMobile = useIsMobile();
   const { 
     assignments, 
     submissions, 
@@ -55,6 +64,10 @@ export function StudentDashboard() {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [showDiagnostic, setShowDiagnostic] = useState(false);
 
+  // Render mobile version on mobile devices
+  if (isMobile && user?.id) {
+    return <MobileStudentDashboard userId={user.id} />;
+  }
 
   if (loading) {
     return (
@@ -75,6 +88,7 @@ export function StudentDashboard() {
   const upcomingAssignments = getUpcomingAssignments();
   const recentSubmissions = getRecentSubmissions();
   const progressStats = getProgressStats();
+
 
   if (selectedAssignment) {
     const assignment = assignments.find(a => a.id === selectedAssignment);
@@ -103,9 +117,23 @@ export function StudentDashboard() {
   }
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Student Dashboard</h1>
+      <div className="bg-[#1e3a5f] -mx-6 -mt-6 px-6 py-4 mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img 
+            src="https://d64gsuwffb70l.cloudfront.net/68caf8605a414d406590b724_1760015224395_1fa7a05d.jpeg" 
+            alt="Literary Genius Academy" 
+            className="w-12 h-12 rounded-full border-2 border-[#d4af37] cursor-pointer hover:opacity-90 transition"
+            onClick={() => window.location.href = '/'}
+          />
+          <h1 className="text-2xl font-bold text-[#f5e6d3]">Student Dashboard</h1>
+        </div>
+        <UserMenu />
+
       </div>
+
+      {/* Push Notification Prompt */}
+      <PushNotificationPrompt userRole="student" />
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -159,6 +187,7 @@ export function StudentDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="practice">Practice Standards</TabsTrigger>
           <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
           <TabsTrigger value="diagnostic">Diagnostic Test</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
@@ -173,6 +202,15 @@ export function StudentDashboard() {
           <TabsTrigger value="essay-scoring">Essay Scoring</TabsTrigger>
           <TabsTrigger value="plagiarism-check">Plagiarism Check</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="practice" className="space-y-4">
+          <StandardsPracticeDashboard
+            studentId={user?.id || ''}
+            gradeLevel="5"
+            subject="Mathematics"
+          />
+        </TabsContent>
+
 
         <TabsContent value="curriculum" className="space-y-4">
           {selectedLesson ? (

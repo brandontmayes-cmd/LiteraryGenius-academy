@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Bell, Mail, Smartphone, Settings } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 export const NotificationSettings: React.FC = () => {
   const { permission, requestPermission, sendTestNotification } = usePushNotifications();
+  const { toast } = useToast();
   const [settings, setSettings] = useState({
     pushNotifications: permission === 'granted',
     emailNotifications: true,
@@ -16,18 +19,76 @@ export const NotificationSettings: React.FC = () => {
     systemAlerts: true
   });
 
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  async function loadPreferences() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (data) {
+      setSettings({
+        pushNotifications: data.push_notifications ?? true,
+        emailNotifications: data.email_notifications ?? true,
+        assignmentReminders: data.assignment_reminders ?? true,
+        gradeUpdates: data.grade_updates ?? true,
+        parentUpdates: data.parent_updates ?? true,
+        systemAlerts: data.system_alerts ?? true
+      });
+    }
+  }
+
   const handlePushToggle = async (enabled: boolean) => {
     if (enabled && permission !== 'granted') {
       const result = await requestPermission();
       setSettings(prev => ({ ...prev, pushNotifications: result === 'granted' }));
+      await savePreferences({ pushNotifications: result === 'granted' });
     } else {
       setSettings(prev => ({ ...prev, pushNotifications: enabled }));
+      await savePreferences({ pushNotifications: enabled });
     }
   };
 
-  const handleSettingChange = (key: keyof typeof settings, value: boolean) => {
+  const handleSettingChange = async (key: keyof typeof settings, value: boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+    await savePreferences({ [key]: value });
   };
+
+  async function savePreferences(updates: Partial<typeof settings>) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const dbUpdates = {
+      user_id: user.id,
+      push_notifications: settings.pushNotifications,
+      email_notifications: settings.emailNotifications,
+      assignment_reminders: settings.assignmentReminders,
+      grade_updates: settings.gradeUpdates,
+      parent_updates: settings.parentUpdates,
+      system_alerts: settings.systemAlerts,
+      ...Object.fromEntries(
+        Object.entries(updates).map(([k, v]) => [k.replace(/([A-Z])/g, '_$1').toLowerCase(), v])
+      )
+    };
+
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert(dbUpdates);
+
+    if (error) {
+      toast({ title: 'Failed to save preferences', variant: 'destructive' });
+    } else {
+      toast({ title: 'Preferences saved successfully' });
+    }
+  }
+
 
   return (
     <div className="space-y-6">

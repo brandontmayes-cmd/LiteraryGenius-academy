@@ -49,12 +49,13 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
   if (!isAuthenticated) return null;
 
+
   return (
     <>
       {/* Bottom Tab Navigation */}
       <div 
         ref={navRef}
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom"
+        className="fixed bottom-0 left-0 right-0 bg-[#1e3a5f] border-t border-[#d4af37] z-40 safe-area-bottom"
       >
         <div className="flex justify-around items-center py-2">
           {tabs.map((tab) => {
@@ -67,8 +68,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 onClick={() => onTabChange(tab.id)}
                 className={`flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 touch-target ${
                   isActive 
-                    ? 'text-blue-600 bg-blue-50 scale-105' 
-                    : 'text-gray-500 hover:text-gray-700 active:scale-95'
+                    ? 'text-[#d4af37] bg-[#2d4a6f] scale-105' 
+                    : 'text-[#f5e6d3] hover:text-[#d4af37] active:scale-95'
                 }`}
               >
                 <Icon className={`w-5 h-5 mb-1 ${isActive ? 'animate-bounce-subtle' : ''}`} />
@@ -82,9 +83,9 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       {/* Hamburger Menu Button */}
       <button
         onClick={() => setIsDrawerOpen(true)}
-        className="fixed top-4 right-4 z-50 bg-white shadow-lg rounded-full p-3 touch-target md:hidden"
+        className="fixed top-4 right-4 z-50 bg-[#d4af37] shadow-lg rounded-full p-3 touch-target md:hidden"
       >
-        <Menu className="w-5 h-5 text-gray-600" />
+        <Menu className="w-5 h-5 text-[#1e3a5f]" />
       </button>
 
       {/* Slide-out Drawer */}
@@ -98,12 +99,12 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             ref={drawerRef}
             className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-out"
           >
-            <div className="p-4 border-b">
+            <div className="p-4 border-b bg-[#1e3a5f]">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Menu</h2>
+                <h2 className="text-lg font-semibold text-[#f5e6d3]">Menu</h2>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 touch-target"
+                  className="p-2 rounded-lg hover:bg-[#2d4a6f] touch-target text-[#d4af37]"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -124,7 +125,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                     }}
                     className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-all touch-target ${
                       isActive 
-                        ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
+                        ? 'bg-[#1e3a5f] text-[#d4af37] border-l-4 border-[#d4af37]' 
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -140,4 +141,3 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       )}
     </>
   );
-};

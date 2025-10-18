@@ -10,7 +10,7 @@ const plans = [
     name: 'Basic',
     price: 19,
     interval: 'month',
-    priceId: 'price_1SFNsgIvvCopH055YMXO77K0',
+    priceId: 'price_1SGRGlIvvCopH055Na9ZbWRq',
     trial: '7-day free trial',
     features: ['Core learning tools', '5 assignments/month', 'Progress tracking', 'Email support', 'Mobile access']
   },
@@ -18,7 +18,7 @@ const plans = [
     name: 'Premium',
     price: 29,
     interval: 'month',
-    priceId: 'price_1SFNvwIvvCopH055m8u5LrQg',
+    priceId: 'price_1SGRHlIvvCopH055HzakgTuq',
     popular: true,
     trial: '7-day free trial',
     features: ['Everything in Basic', 'Unlimited AI tutoring', 'Unlimited assignments', 'Advanced analytics', 'Priority support']
@@ -27,7 +27,7 @@ const plans = [
     name: 'Enterprise',
     price: 49,
     interval: 'month',
-    priceId: 'price_1SFNxZIvvCopH055Kem1Y1OV',
+    priceId: 'price_1SGRIdIvvCopH055OJ3n5AfH',
     trial: '7-day free trial',
     features: ['Everything in Premium', 'Admin dashboard', 'Custom curriculum', 'Dedicated support', 'API access']
   }

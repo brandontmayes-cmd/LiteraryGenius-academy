@@ -111,17 +111,26 @@ export const MobileStudentDashboard: React.FC<MobileStudentDashboardProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-[#1e3a5f] border-b border-[#d4af37] p-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-600">Welcome back, Student!</p>
+          <div className="flex items-center gap-3">
+            <img 
+              src="https://d64gsuwffb70l.cloudfront.net/68caf8605a414d406590b724_1760015224395_1fa7a05d.jpeg" 
+              alt="Literary Genius Academy" 
+              className="w-10 h-10 rounded-full border-2 border-[#d4af37] cursor-pointer"
+              onClick={() => window.location.href = '/'}
+            />
+            <div>
+              <h1 className="text-lg font-bold text-[#f5e6d3]">Dashboard</h1>
+              <p className="text-xs text-[#d4af37]">Welcome back, Student!</p>
+            </div>
           </div>
-          <Button variant="ghost" size="sm" className="p-2">
+          <Button variant="ghost" size="sm" className="p-2 text-[#d4af37] hover:text-[#f5e6d3]">
             <Bell className="w-5 h-5" />
           </Button>
         </div>
       </div>
+
 
       <div className="p-4 space-y-6">
         {/* Stats Cards */}

@@ -8,13 +8,21 @@ import { Progress } from './ui/progress';
 import { useTeacherData } from '../hooks/useTeacherData';
 import { useNotifications } from '../hooks/useNotifications';
 import { EnhancedAssignmentCreator } from './EnhancedAssignmentCreator';
+import { ReportDashboard } from './reports/ReportDashboard';
 import { TeacherGradebook } from './TeacherGradebook';
+
 import { ContentManagement } from './ContentManagement';
 import AssignmentAnalyticsDashboard from './AssignmentAnalyticsDashboard';
 import { AssignmentManagementDashboard } from './AssignmentManagementDashboard';
 import { AutomatedEssayScoring } from './AutomatedEssayScoring';
 import TeacherCurriculumHub from './teacher/TeacherCurriculumHub';
 import { StandardsReportGenerator } from './teacher/StandardsReportGenerator';
+import { UserMenu } from './UserMenu';
+import { MobileTeacherDashboard } from './MobileTeacherDashboard';
+import { useIsMobile } from '../hooks/use-mobile';
+import { useAuth } from '../contexts/AuthContext';
+import { PushNotificationPrompt } from './PushNotificationPrompt';
+
 
 import { 
   Users, 
@@ -28,7 +36,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-
+export const TeacherDashboard: React.FC = () => {
+  const isMobile = useIsMobile();
+  const { user } = useAuth();
 
 export const TeacherDashboard: React.FC = () => {
   const { data, loading, error } = useTeacherData();
@@ -59,22 +69,31 @@ export const TeacherDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src="https://d64gsuwffb70l.cloudfront.net/68cafa1d5a414d406590e7bd_1758135267189_27b4bdc0.webp" />
-            <AvatarFallback>SJ</AvatarFallback>
-          </Avatar>
+      <div className="bg-[#1e3a5f] -mx-6 -mt-6 px-6 py-4 mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img 
+            src="https://d64gsuwffb70l.cloudfront.net/68caf8605a414d406590b724_1760015224395_1fa7a05d.jpeg" 
+            alt="Literary Genius Academy" 
+            className="w-12 h-12 rounded-full border-2 border-[#d4af37] cursor-pointer hover:opacity-90 transition"
+            onClick={() => window.location.href = '/'}
+          />
           <div>
-            <h1 className="text-2xl font-bold">Welcome back, {data.teacher?.name}</h1>
-            <p className="text-gray-600">{data.teacher?.class_name} • {data.teacher?.subject}</p>
+            <h1 className="text-2xl font-bold text-[#f5e6d3]">Welcome back, {data.teacher?.name}</h1>
+            <p className="text-[#d4af37]">{data.teacher?.class_name} • {data.teacher?.subject}</p>
           </div>
         </div>
-        <Button onClick={() => setShowAssignmentCreator(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Assignment
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button onClick={() => setShowAssignmentCreator(true)} className="bg-[#d4af37] text-[#1e3a5f] hover:bg-[#c19b2f]">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Assignment
+          </Button>
+          <UserMenu />
+        </div>
       </div>
+
+      {/* Push Notification Prompt */}
+      <PushNotificationPrompt userRole="teacher" />
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -142,8 +161,9 @@ export const TeacherDashboard: React.FC = () => {
       )}
 
       {/* Main Content Tabs */}
+      {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-11">
+        <TabsList className="grid w-full grid-cols-12">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="students">Students</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
@@ -154,8 +174,11 @@ export const TeacherDashboard: React.FC = () => {
           <TabsTrigger value="essay-scoring">Essay Scoring</TabsTrigger>
           <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
           <TabsTrigger value="standards">Standards</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
+
+
 
 
 
@@ -375,6 +398,9 @@ export const TeacherDashboard: React.FC = () => {
           <StandardsReportGenerator teacherId={data.teacher?.id || 'teacher1'} />
         </TabsContent>
 
+        <TabsContent value="reports">
+          <ReportDashboard />
+        </TabsContent>
 
       </Tabs>
     </div>

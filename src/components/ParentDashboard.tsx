@@ -9,11 +9,12 @@ import { ParentCommunication } from './ParentCommunication';
 import { NotificationSettings } from './NotificationSettings';
 import { useParentData } from '../hooks/useParentData';
 import { Label } from '@/components/ui/label';
-import { useParentData } from '@/hooks/useParentData';
-import { ParentProgressChart } from '@/components/ParentProgressChart';
-import { ParentCommunication } from '@/components/ParentCommunication';
 import { Clock, BookOpen, Trophy, MessageCircle, AlertTriangle, Calendar, TrendingUp, BarChart3, Bell } from 'lucide-react';
 import { ParentStandardsProgress } from './ParentStandardsProgress';
+import { UserMenu } from './UserMenu';
+import { PushNotificationPrompt } from './PushNotificationPrompt';
+
+
 
 
 export const ParentDashboard = () => {
@@ -64,8 +65,21 @@ export const ParentDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-[#1e3a5f] -mx-4 -mt-8 px-6 py-4 mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img 
+            src="https://d64gsuwffb70l.cloudfront.net/68caf8605a414d406590b724_1760015224395_1fa7a05d.jpeg" 
+            alt="Literary Genius Academy" 
+            className="w-12 h-12 rounded-full border-2 border-[#d4af37] cursor-pointer hover:opacity-90 transition"
+            onClick={() => window.location.href = '/'}
+          />
+          <h1 className="text-2xl font-bold text-[#f5e6d3]">Parent Dashboard</h1>
+        </div>
+        <UserMenu />
+      </div>
+
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Parent Dashboard</h1>
+
         {students.length > 1 && (
           <Select value={selectedStudent.id} onValueChange={(value) => {
             const student = students.find(s => s.id === value);

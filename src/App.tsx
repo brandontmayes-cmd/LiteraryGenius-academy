@@ -5,11 +5,14 @@ import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentCancelled from './pages/PaymentCancelled'
 import VerifyEmail from './pages/VerifyEmail'
 import ResetPassword from './pages/ResetPassword'
+import { AccountSettings } from './components/AccountSettings'
+
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/settings" element={<AccountSettings />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/payment-cancelled" element={<PaymentCancelled />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
@@ -18,6 +21,8 @@ function App() {
     </Routes>
   )
 }
+
+
 
 export default App
 
