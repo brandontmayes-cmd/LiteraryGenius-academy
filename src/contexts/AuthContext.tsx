@@ -201,18 +201,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('An account with this email already exists');
         }
 
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: authData.user.id,
-            email: data.email,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            role: data.role,
-            is_active: true,
-            email_verified: false,
-            verification_sent_at: new Date().toISOString(),
-          });
+       const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          id: authData.user.id,
+          email: data.email,
+          full_name: `${data.firstName} ${data.lastName}`,
+          role: data.role,
+        });
 
         if (profileError) throw profileError;
 
