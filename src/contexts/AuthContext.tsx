@@ -117,8 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const user: User = {
           id: data.id,
           email: data.email,
-          firstName: data.first_name || '',
-          lastName: data.last_name || '',
+          firstName: data.full_name?.split(' ')[0] || '',
+          lastName: data.full_name?.split(' ').slice(1).join(' ') || '',
           role: data.role,
           avatar: data.avatar_url,
           createdAt: data.created_at,
