@@ -40,7 +40,6 @@ export const TeacherDashboard: React.FC = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
 
-export const TeacherDashboard: React.FC = () => {
   const { data, loading, error } = useTeacherData();
   const { sendNotification } = useNotifications();
   const [showAssignmentCreator, setShowAssignmentCreator] = useState(false);
