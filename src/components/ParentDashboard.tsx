@@ -9,10 +9,13 @@ import { ParentCommunication } from './ParentCommunication';
 import { NotificationSettings } from './NotificationSettings';
 import { useParentData } from '../hooks/useParentData';
 import { Label } from '@/components/ui/label';
-import { Clock, BookOpen, Trophy, MessageCircle, AlertTriangle, Calendar, TrendingUp, BarChart3, Bell } from 'lucide-react';
+import { Clock, BookOpen, Trophy, MessageCircle, AlertTriangle, Calendar, TrendingUp, BarChart3, Bell, Settings } from 'lucide-react';
 import { ParentStandardsProgress } from './ParentStandardsProgress';
 import { UserMenu } from './UserMenu';
 import { PushNotificationPrompt } from './PushNotificationPrompt';
+import StandardsBasedQuestionGenerator from './StandardsBasedQuestionGenerator';
+import QuestionBankManager from './QuestionBankManager';
+
 
 
 
@@ -151,15 +154,27 @@ export const ParentDashboard = () => {
         </Card>
       </div>
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="progress">Progress Reports</TabsTrigger>
+          <TabsTrigger value="progress">Progress</TabsTrigger>
           <TabsTrigger value="standards">Standards</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
           <TabsTrigger value="communication">Communication</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="content">
+            <Settings className="h-4 w-4 mr-2" />
+            Content
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="content" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <StandardsBasedQuestionGenerator />
+            <QuestionBankManager />
+          </div>
+        </TabsContent>
+
 
         <TabsContent value="standards" className="space-y-6">
           <ParentStandardsProgress studentId={selectedStudent.id} />

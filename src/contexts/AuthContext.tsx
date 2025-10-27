@@ -189,6 +189,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password: data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/verify-email`,
+          data: {
+            role: data.role,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            grade_level: data.gradeLevel,
+          }
         },
       });
 
@@ -201,14 +207,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('An account with this email already exists');
         }
 
-       const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: authData.user.id,
-          email: data.email,
-          full_name: `${data.firstName} ${data.lastName}`,
-          role: data.role,
-        });
+        // Use upsert to handle case where trigger already created profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .upsert({
+            id: authData.user.id,
+            email: data.email,
+            full_name: `${data.firstName} ${data.lastName}`,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            role: data.role,
+            grade_level: data.gradeLevel,
+            is_active: true,
+          }, {
+            onConflict: 'id'
+          });
 
         if (profileError) throw profileError;
 
@@ -222,6 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
 
 
   const resendVerificationEmail = async () => {

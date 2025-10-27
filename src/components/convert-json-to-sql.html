@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Convert Standards JSON to SQL</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        textarea { width: 100%; height: 300px; font-family: monospace; font-size: 12px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px 5px; background: #4CAF50; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #45a049; }
+        #output { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; max-height: 600px; overflow-y: scroll; font-size: 12px; font-family: monospace; }
+        .success { color: green; font-weight: bold; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Convert Common Core JSON to SQL</h1>
+    <p>Paste the contents of the CC-math-0.8.0 or CC-literacy-0.8.0 JSON file below, then click Convert.</p>
+    
+    <label>Paste JSON here:</label>
+    <textarea id="jsonInput" placeholder='Paste the entire JSON array here (starting with [ and ending with ])'></textarea>
+    
+    <button onclick="convertToSQL()">Convert to SQL</button>
+    <button onclick="copyToClipboard()">Copy SQL to Clipboard</button>
+    
+    <div id="status"></div>
+    <div id="output"></div>
+
+    <script>
+        let sqlStatements = [];
+        
+        function convertToSQL() {
+            const jsonInput = document.getElementById('jsonInput').value;
+            const status = document.getElementById('status');
+            const output = document.getElementById('output');
+            
+            sqlStatements = [];
+            output.textContent = '';
+            
+            try {
+                const standards = JSON.parse(jsonInput);
+                
+                status.innerHTML = `<p>Processing ${standards.length} items...</p>`;
+                
+                let count = 0;
+                
+                for (const std of standards) {
+                    // Skip folders/headers that don't have a code
+                    if (!std.code || std.cls === 'folder') {
+                        continue;
+                    }
+                    
+                    // Determine subject
+                    const subject = std.subject === 'Math' ? 'Mathematics' : 'English Language Arts';
+                    
+                    // Get description
+                    const description = std.statement.replace(/'/g, "''"); // Escape quotes
+                    const code = std.code.replace(/'/g, "''");
+                    
+                    // Process each grade level
+                    for (const gradeLevel of std.gradeLevels) {
+                        // Convert grade level (KG = 0, 01 = 1, etc.)
+                        let grade;
+                        if (gradeLevel === 'KG' || gradeLevel === 'K') {
+                            grade = 0;
+                        } else {
+                            grade = parseInt(gradeLevel);
+                        }
+                        
+                        // Skip high school grades > 8 for now (or include them if you want)
+                        if (grade > 8) continue;
+                        
+                        const sql = `INSERT INTO common_core_standards (code, subject, grade_level, description, domain) VALUES ('${code}', '${subject}', ${grade}, '${description}', 'Core');`;
+                        
+                        sqlStatements.push(sql);
+                        count++;
+                    }
+                }
+                
+                output.textContent = sqlStatements.join('\n\n');
+                status.innerHTML = `<p class="success">✅ Success! Generated ${count} SQL statements. Click "Copy SQL" to copy them.</p>`;
+                
+            } catch (error) {
+                status.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+        
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.textContent) {
+                alert('No SQL to copy! Click "Convert to SQL" first.');
+                return;
+            }
+            navigator.clipboard.writeText(output.textContent).then(() => {
+                alert('SQL copied! Now paste it into Supabase SQL Editor and run it.');
+            });
+        }
+    </script>
+</body>
+</html>

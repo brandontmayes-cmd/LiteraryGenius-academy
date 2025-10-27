@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Common Core Standards</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px 0; }
+        #output { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; max-height: 600px; overflow-y: scroll; font-size: 12px; }
+        .progress { color: blue; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Common Core Standards Importer</h1>
+    <p>This will fetch all Common Core Math and ELA standards and generate SQL for your Supabase database.</p>
+    
+    <button onclick="fetchStandards()">Fetch All Standards</button>
+    <button onclick="copyToClipboard()">Copy SQL to Clipboard</button>
+    
+    <div id="status"></div>
+    <div id="output"></div>
+
+    <script>
+        let sqlStatements = [];
+        
+        async function fetchStandards() {
+            const status = document.getElementById('status');
+            const output = document.getElementById('output');
+            
+            status.innerHTML = '<p class="progress">Fetching standards...</p>';
+            output.innerHTML = '';
+            sqlStatements = [];
+            
+            try {
+                // These are the standard set IDs we found
+                const standardSets = [
+                    { id: '67810E9EF6944F9383DCC602A3484C23_D10003FB_grade-03', subject: 'Mathematics', grade: 3 },
+                    { id: '67810E9EF6944F9383DCC602A3484C23_D10003FB_grade-04', subject: 'Mathematics', grade: 4 },
+                    { id: '67810E9EF6944F9383DCC602A3484C23_D10003FB_grade-05', subject: 'Mathematics', grade: 5 },
+                    { id: '67810E9EF6944F9383DCC602A3484C23_D10003FC_grade-03', subject: 'English Language Arts', grade: 3 },
+                    { id: '67810E9EF6944F9383DCC602A3484C23_D10003FC_grade-04', subject: 'English Language Arts', grade: 4 },
+                    { id: '67810E9EF6944F9383DCC602A3484C23_D10003FC_grade-05', subject: 'English Language Arts', grade: 5 },
+                ];
+                
+                for (const set of standardSets) {
+                    status.innerHTML += `<p class="progress">Fetching ${set.subject} Grade ${set.grade}...</p>`;
+                    
+                    const response = await fetch(`https://api.commonstandardsproject.com/api/v1/standard_sets/${set.id}`);
+                    const data = await response.json();
+                    
+                    console.log('Response:', data); // Debug
+                    
+                    // Check if standards exist
+                    if (!data.data || !data.data.standards) {
+                        status.innerHTML += `<p class="error">No standards found for ${set.id}</p>`;
+                        continue;
+                    }
+                    
+                    const standards = data.data.standards;
+                    const subject = set.subject;
+                    const gradeLevel = set.grade;
+                    
+                    let count = 0;
+                    
+                    // Convert to SQL
+                    for (const standardId in standards) {
+                        const std = standards[standardId];
+                        
+                        // Skip if missing required fields
+                        if (!std.statementNotation || !std.description) {
+                            continue;
+                        }
+                        
+                        // Escape single quotes for SQL
+                        const code = std.statementNotation.replace(/'/g, "''");
+                        const description = std.description.replace(/'/g, "''");
+                        
+                        const sql = `INSERT INTO common_core_standards (code, subject, grade_level, description, domain) VALUES ('${code}', '${subject}', ${gradeLevel}, '${description}', 'Core');`;
+                        
+                        sqlStatements.push(sql);
+                        count++;
+                    }
+                    
+                    status.innerHTML += `<p class="success">✓ Imported ${count} standards for ${subject} Grade ${gradeLevel}</p>`;
+                    
+                    // Small delay to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                output.textContent = sqlStatements.join('\n\n');
+                status.innerHTML += `<p class="success"><strong>✅ Done! Generated ${sqlStatements.length} SQL statements. Click "Copy SQL" button above.</strong></p>`;
+                
+            } catch (error) {
+                status.innerHTML += `<p class="error">❌ Error: ${error.message}</p>`;
+                console.error('Full error:', error);
+            }
+        }
+        
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.textContent) {
+                alert('No SQL to copy! Click "Fetch All Standards" first.');
+                return;
+            }
+            navigator.clipboard.writeText(output.textContent).then(() => {
+                alert('SQL copied to clipboard! Now paste it into Supabase SQL Editor and run it.');
+            });
+        }
+    </script>
+</body>
+</html>

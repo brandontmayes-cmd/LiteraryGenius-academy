@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
+
 
 // Social login icons (SVG components)
 const GoogleIcon = () => (
@@ -28,6 +30,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -56,6 +59,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       if (activeTab === 'login') {
         await login({ email: formData.email, password: formData.password });
         onClose();
+        // Navigate to dashboard after successful login
+        navigate('/dashboard');
       } else {
         await register(formData);
         // Don't close modal - show verification pending state
@@ -65,6 +70,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
       console.error('Auth error:', error);
     }
   };
+
+
 
   const handleResendVerification = async () => {
     setResendLoading(true);
