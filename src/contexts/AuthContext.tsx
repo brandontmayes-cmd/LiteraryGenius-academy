@@ -192,6 +192,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'LOGIN_START' });
     
     try {
+      // Convert empty gradeLevel to null for non-student roles
+      const gradeLevel = data.role === 'student' && data.gradeLevel ? data.gradeLevel : null;
+      
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -201,7 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: data.role,
             first_name: data.firstName,
             last_name: data.lastName,
-            grade_level: data.gradeLevel,
+            grade_level: gradeLevel,
           }
         },
       });
@@ -225,7 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             first_name: data.firstName,
             last_name: data.lastName,
             role: data.role,
-            grade_level: data.gradeLevel,
+            grade_level: gradeLevel,
             is_active: true,
           }, {
             onConflict: 'id'
@@ -243,6 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
 
 
 

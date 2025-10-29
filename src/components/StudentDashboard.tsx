@@ -23,6 +23,10 @@ import CurriculumBrowser from './CurriculumBrowser';
 import EnhancedLessonPlayer from './EnhancedLessonPlayer';
 import StandardsPracticeDashboard from './StandardsPracticeDashboard';
 import ComprehensiveDiagnosticTest from './ComprehensiveDiagnosticTest';
+import StandardsBrowser from './StandardsBrowser';
+
+const LessonViewer = EnhancedLessonPlayer;
+
 
 
 import { BookOpen, Calendar, Clock, TrendingUp, Award, CheckCircle, AlertTriangle, Target, PenTool, Users } from 'lucide-react';

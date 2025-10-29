@@ -27,10 +27,14 @@ export function LandingHero({ onGetStarted, isAuthenticated }: LandingHeroProps)
                 {isAuthenticated ? 'Go to Dashboard' : 'Get Started Free'}
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+              <button 
+                onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
+                className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+              >
                 <Play className="w-5 h-5" />
                 Watch Demo
               </button>
+
             </div>
           </div>
           <div className="relative">
