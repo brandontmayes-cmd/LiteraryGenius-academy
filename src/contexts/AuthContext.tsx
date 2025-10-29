@@ -117,20 +117,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const user: User = {
           id: data.id,
           email: data.email,
-          firstName: data.full_name?.split(' ')[0] || '',
-          lastName: data.full_name?.split(' ').slice(1).join(' ') || '',
+          firstName: data.first_name || data.full_name?.split(' ')[0] || '',
+          lastName: data.last_name || data.full_name?.split(' ').slice(1).join(' ') || '',
           role: data.role,
           avatar: data.avatar_url,
           createdAt: data.created_at,
           lastLogin: data.last_login,
           isActive: data.is_active,
         };
+        
+        // Update last_login timestamp
+        await supabase
+          .from('user_profiles')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', userId);
+          
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       }
     } catch (error: any) {
       dispatch({ type: 'LOGIN_ERROR', payload: error.message });
     }
   };
+
 
 
   const createOAuthProfile = async (userId: string) => {

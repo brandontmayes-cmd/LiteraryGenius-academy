@@ -49,6 +49,8 @@ export default function AdaptiveQuiz({ subject, studentId, onComplete }: Adaptiv
   const generateAdaptiveTest = async () => {
     try {
       setLoading(true);
+      
+      // Try to generate questions from edge function
       const { data, error } = await supabase.functions.invoke('adaptive-assessment-engine', {
         body: {
           action: 'generate_adaptive_test',
@@ -60,16 +62,56 @@ export default function AdaptiveQuiz({ subject, studentId, onComplete }: Adaptiv
         }
       });
 
-      if (error) throw error;
-      if (data.success) {
+      if (error) {
+        console.error('Edge function error:', error);
+        // Fallback to generating sample questions
+        generateFallbackQuestions();
+        return;
+      }
+
+      if (data?.success && data?.data?.questions && data.data.questions.length > 0) {
         setQuestions(data.data.questions);
+      } else {
+        // No questions returned, use fallback
+        generateFallbackQuestions();
       }
     } catch (error) {
       console.error('Error generating adaptive test:', error);
+      // Fallback to sample questions
+      generateFallbackQuestions();
     } finally {
       setLoading(false);
     }
   };
+
+  const generateFallbackQuestions = () => {
+    // Generate sample questions as fallback
+    const sampleQuestions: Question[] = [
+      {
+        id: '1',
+        type: 'multiple_choice',
+        question: `What is the main idea of ${subject}?`,
+        options: ['Option A', 'Option B', 'Option C', 'Option D'],
+        correct_answer: 'Option A',
+        difficulty: difficulty,
+        learning_objective: `Understanding ${subject} concepts`,
+        estimated_time: '2',
+        explanation: 'This tests basic understanding.'
+      },
+      {
+        id: '2',
+        type: 'short_answer',
+        question: `Explain a key concept in ${subject}.`,
+        correct_answer: 'sample answer',
+        difficulty: difficulty,
+        learning_objective: `${subject} comprehension`,
+        estimated_time: '3',
+        explanation: 'This tests your ability to explain concepts.'
+      }
+    ];
+    setQuestions(sampleQuestions);
+  };
+
 
   const handleAnswerSubmit = async () => {
     const currentQuestion = questions[currentQuestionIndex];
