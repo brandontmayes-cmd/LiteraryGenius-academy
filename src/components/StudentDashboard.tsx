@@ -60,7 +60,7 @@ export function StudentDashboard() {
     getProgressStats
   } = useStudentData();
   
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
