@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase
           .from('user_profiles')
           .update({ last_login: new Date().toISOString() })
-          .eq('id', userId);
+          .eq('user_id', userId);
           
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       }

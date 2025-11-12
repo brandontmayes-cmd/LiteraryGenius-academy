@@ -43,54 +43,90 @@ export const AITutor: React.FC<AITutorProps> = ({
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+ const sendMessage = async () => {
+  if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-tutor-chat', {
-        body: {
-          message: input,
-          studentProfile,
-          context: `${subject} - ${context || ''}`
-        }
-      });
-
-      if (error) throw error;
-
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.response,
-        sender: 'ai',
-        timestamp: new Date(),
-        suggestions: data.suggestions
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('AI Tutor error:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Sorry, I encountered an error. Please try again.',
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    content: input,
+    sender: 'user',
+    timestamp: new Date()
   };
 
+  setMessages(prev => [...prev, userMessage]);
+  const currentInput = input;
+  setInput('');
+  setIsLoading(true);
+
+  try {
+    // Call Anthropic API directly
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [
+          {
+            role: 'user',
+            content: `You are a helpful ${subject} tutor for a ${studentProfile?.grade_level || '4th'} grade student at Literary Genius Academy.
+
+Your teaching approach:
+- Be encouraging and patient
+- Use age-appropriate language
+- Give concrete examples from daily life
+- Ask questions to check understanding
+- Guide thinking rather than giving direct answers
+- Make learning fun and engaging
+
+Student question: ${currentInput}
+
+Context: ${context || 'General learning'}
+
+Provide a clear, helpful response that helps the student learn.`
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.content[0].text;
+
+    const aiMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: aiResponse,
+      sender: 'ai',
+      timestamp: new Date(),
+      suggestions: [
+        'Can you explain more?',
+        'Give me an example',
+        'What should I practice next?'
+      ]
+    };
+
+    setMessages(prev => [...prev, aiMessage]);
+  } catch (error: any) {
+    console.error('AI Tutor error:', error);
+    const errorMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: `Sorry, I encountered an error: ${error.message}. Please make sure the AI API is configured correctly.`,
+      sender: 'ai',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, errorMessage]);
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleSuggestion = (suggestion: string) => {
     setInput(suggestion);
   };
