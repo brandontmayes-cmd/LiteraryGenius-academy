@@ -60,11 +60,17 @@ export const AITutor: React.FC<AITutorProps> = ({
 
   try {
     // Call Anthropic API directly
+    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('Anthropic API key not configured');
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -77,17 +83,18 @@ export const AITutor: React.FC<AITutorProps> = ({
 
 Your teaching approach:
 - Be encouraging and patient
-- Use age-appropriate language
+- Use age-appropriate language (4th grade level)
 - Give concrete examples from daily life
 - Ask questions to check understanding
 - Guide thinking rather than giving direct answers
 - Make learning fun and engaging
+- Never just give the answer - help them figure it out
 
 Student question: ${currentInput}
 
 Context: ${context || 'General learning'}
 
-Provide a clear, helpful response that helps the student learn.`
+Provide a clear, helpful response that helps the student learn and think critically.`
           }
         ]
       })
@@ -107,7 +114,7 @@ Provide a clear, helpful response that helps the student learn.`
       sender: 'ai',
       timestamp: new Date(),
       suggestions: [
-        'Can you explain more?',
+        'Can you explain that differently?',
         'Give me an example',
         'What should I practice next?'
       ]
@@ -118,7 +125,7 @@ Provide a clear, helpful response that helps the student learn.`
     console.error('AI Tutor error:', error);
     const errorMessage: Message = {
       id: (Date.now() + 1).toString(),
-      content: `Sorry, I encountered an error: ${error.message}. Please make sure the AI API is configured correctly.`,
+      content: `Sorry, I encountered an error: ${error.message}. Please make sure the AI API key is configured in Vercel environment variables.`,
       sender: 'ai',
       timestamp: new Date()
     };
