@@ -23,6 +23,7 @@ import CurriculumBrowser from './CurriculumBrowser';
 import EnhancedLessonPlayer from './EnhancedLessonPlayer';
 import StandardsPracticeDashboard from './StandardsPracticeDashboard';
 import ComprehensiveDiagnosticTest from './ComprehensiveDiagnosticTest';
+import { AITutor } from './AITutor';
 import StandardsBrowser from './StandardsBrowser';
 
 const LessonViewer = EnhancedLessonPlayer;
@@ -195,7 +196,8 @@ export function StudentDashboard() {
           <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
           <TabsTrigger value="diagnostic">Diagnostic Test</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
-          <TabsTrigger value="submissions">My Submissions</TabsTrigger>
+          <TabsTrigger value="ai-tutor">🤖 AI Tutor</TabsTrigger>   
+	  <TabsTrigger value="submissions">My Submissions</TabsTrigger>
           <TabsTrigger value="progress">Progress</TabsTrigger>
           <TabsTrigger value="parent-access">Parent Access</TabsTrigger>
           <TabsTrigger value="learning-path">AI Learning Path</TabsTrigger>
@@ -250,7 +252,13 @@ export function StudentDashboard() {
         <TabsContent value="parent-access" className="space-y-4">
           <ParentAccessRequestManager />
         </TabsContent>
-
+	<TabsContent value="ai-tutor" className="space-y-4">
+  	  <AITutor 
+    	  studentProfile={profile}
+    	  subject="General"
+    	  context="4th Grade Student Learning"
+  />
+</TabsContent>
 
         <TabsContent value="writing-assistant" className="space-y-4">
           <AIWritingAssistant />
