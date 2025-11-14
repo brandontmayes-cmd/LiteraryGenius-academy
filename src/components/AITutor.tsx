@@ -62,6 +62,15 @@ export const AITutor: React.FC<AITutorProps> = ({
       // Call Anthropic API directly
       const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
       
+      // Debug logging
+      console.log('Environment check:', {
+        hasApiKey: !!apiKey,
+        apiKeyLength: apiKey?.length || 0,
+        allEnvVars: Object.keys(import.meta.env),
+        envMode: import.meta.env.MODE,
+        envProd: import.meta.env.PROD
+      });
+      
       if (!apiKey) {
         throw new Error('Anthropic API key not configured. Please add VITE_ANTHROPIC_API_KEY to Vercel environment variables.');
       }
