@@ -59,8 +59,11 @@ export const AITutor: React.FC<AITutorProps> = ({
     setIsLoading(true);
 
     try {
-      // Call Anthropic API directly
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      // TEMPORARY: Hardcoded API key for testing
+      // TODO: Move back to environment variable once we figure out Vercel config
+      const apiKey = sk-ant-ap103-PjrjKhdWBFbYXP402hMVyRx4Lt6ELJ N8TKqXQI9EqnXjRWK-KK77u_Cg9M_RzUB920wzBT
+jFpTF1#NEG10ENw-dAamYgAA
+;  // Replace this with your real key
       
       // Debug logging
       console.log('Environment check:', {
@@ -71,8 +74,8 @@ export const AITutor: React.FC<AITutorProps> = ({
         envProd: import.meta.env.PROD
       });
       
-      if (!apiKey) {
-        throw new Error('Anthropic API key not configured. Please add VITE_ANTHROPIC_API_KEY to Vercel environment variables.');
+      if (!apiKey || apiKey === 'YOUR_ACTUAL_API_KEY_HERE') {
+        throw new Error('API key not set in code. Please replace YOUR_ACTUAL_API_KEY_HERE with your actual key.');
       }
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
