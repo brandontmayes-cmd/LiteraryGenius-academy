@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { supabase } from '@/lib/supabase';
 
 interface Message {
   id: string;
@@ -59,66 +58,27 @@ export const AITutor: React.FC<AITutorProps> = ({
     setIsLoading(true);
 
     try {
-      // TEMPORARY: Hardcoded API key for testing
-      // TODO: Move back to environment variable once we figure out Vercel config
-      const apiKey = sk-ant-ap103-PjrjKhdWBFbYXP402hMVyRx4Lt6ELJ N8TKqXQI9EqnXjRWK-KK77u_Cg9M_RzUB920wzBT
-jFpTF1#NEG10ENw-dAamYgAA
-;  // Replace this with your real key
-      
-      // Debug logging
-      console.log('Environment check:', {
-        hasApiKey: !!apiKey,
-        apiKeyLength: apiKey?.length || 0,
-        allEnvVars: Object.keys(import.meta.env),
-        envMode: import.meta.env.MODE,
-        envProd: import.meta.env.PROD
-      });
-      
-      if (!apiKey || apiKey === 'YOUR_ACTUAL_API_KEY_HERE') {
-        throw new Error('API key not set in code. Please replace YOUR_ACTUAL_API_KEY_HERE with your actual key.');
-      }
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      // Call OUR secure API route (not Anthropic directly)
+      const response = await fetch('/api/tutor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
-          messages: [
-            {
-              role: 'user',
-              content: `You are a helpful ${subject} tutor for a ${studentProfile?.grade_level || '4th'} grade student at Literary Genius Academy.
-
-Your teaching approach:
-- Be encouraging and patient
-- Use age-appropriate language (4th grade level)
-- Give concrete examples from daily life
-- Ask questions to check understanding
-- Guide thinking rather than giving direct answers
-- Make learning fun and engaging
-- Never just give the answer - help them figure it out
-
-Student question: ${currentInput}
-
-Context: ${context || 'General learning'}
-
-Provide a clear, helpful response that helps the student learn and think critically.`
-            }
-          ]
+          message: currentInput,
+          subject: subject,
+          gradeLevel: studentProfile?.grade_level || '4th',
+          context: context || 'General learning'
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+        throw new Error(errorData.error || `Error: ${response.status}`);
       }
 
       const data = await response.json();
-      const aiResponse = data.content[0].text;
+      const aiResponse = data.response;
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -137,7 +97,7 @@ Provide a clear, helpful response that helps the student learn and think critica
       console.error('AI Tutor error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: `Sorry, I encountered an error: ${error.message}`,
+        content: `Sorry, I encountered an error: ${error.message}. Please try again.`,
         sender: 'ai',
         timestamp: new Date()
       };
