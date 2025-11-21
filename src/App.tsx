@@ -15,15 +15,13 @@ import Features from './pages/Features'
 import Pricing from './pages/Pricing'
 import ForTeachers from './pages/ForTeachers'
 import ForStudents from './pages/ForStudents'
+import Admin from './pages/Admin' // ← ADD THIS
 import { AccountSettings } from './components/AccountSettings'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { DashboardRouter } from './components/DashboardRouter'
 import { StudentDashboard } from './components/StudentDashboard'
 import { TeacherDashboard } from './components/TeacherDashboard'
 import { ParentDashboard } from './components/ParentDashboard'
-
-
-
 
 function App() {
   return (
@@ -45,6 +43,14 @@ function App() {
           <ParentDashboard />
         </ProtectedRoute>
       } />
+      
+      {/* ADD THIS ADMIN ROUTE */}
+      <Route path="/admin" element={
+        <ProtectedRoute allowedRoles={['teacher']}>
+          <Admin />
+        </ProtectedRoute>
+      } />
+      
       <Route path="/settings" element={
         <ProtectedRoute>
           <AccountSettings />
@@ -70,11 +76,4 @@ function App() {
   )
 }
 
-
-
-
-
-
 export default App
-
-
