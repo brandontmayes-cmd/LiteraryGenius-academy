@@ -63,13 +63,13 @@ async function generateContent(
 
 ${template}
 
-Requirements:
-- Content must be age-appropriate for ${grade} grade
-- Follow Common Core standards
-- Be engaging and clear
-- Include answer keys where applicable
+CRITICAL INSTRUCTIONS:
+- Return ONLY a valid JSON object
+- Do NOT include any explanatory text before or after the JSON
+- Do NOT wrap the JSON in markdown code blocks
+- Do NOT include any additional commentary
 
-Return ONLY a JSON object with this structure:
+Required JSON structure:
 {
   "title": "Brief descriptive title",
   "items": [array of problems/words/prompts],
@@ -77,7 +77,7 @@ Return ONLY a JSON object with this structure:
   "instructions": "Student instructions"
 }
 
-Return ONLY valid JSON, no other text.`;
+Your response must be ONLY the JSON object above, nothing else.`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -100,13 +100,24 @@ Return ONLY valid JSON, no other text.`;
   const data = await response.json();
   const text = data.content[0].text;
   
-  // Extract JSON from response (Claude sometimes wraps it in markdown)
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  // Remove markdown code blocks if present
+  let cleanText = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+  
+  // Try to find JSON object
+  const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    throw new Error('No JSON found in response');
+    console.error('Claude response:', text);
+    throw new Error('No JSON found in Claude response. Check logs for details.');
   }
   
-  return JSON.parse(jsonMatch[0]);
+  try {
+    return JSON.parse(jsonMatch[0]);
+  } catch (parseError: any) {
+    console.error('JSON parse error:', parseError);
+    console.error('Attempted to parse:', jsonMatch[0].substring(0, 200));
+    throw new Error(`Failed to parse JSON: ${parseError.message}`);
+  }
+}
 }
 
 export default async function handler(req: Request) {
