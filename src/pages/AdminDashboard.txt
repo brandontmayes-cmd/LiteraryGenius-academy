@@ -1,0 +1,9 @@
+import { ContentGenerationDashboard } from '@/components/ContentGenerationDashboard';
+   
+   export default function AdminDashboard() {
+     return (
+       <div className="container mx-auto">
+         <ContentGenerationDashboard />
+       </div>
+     );
+   }
