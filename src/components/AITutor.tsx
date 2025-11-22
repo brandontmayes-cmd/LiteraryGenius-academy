@@ -58,16 +58,28 @@ export const AITutor: React.FC<AITutorProps> = ({
     setIsLoading(true);
 
     try {
-      // Call OUR secure API route (not Anthropic directly)
+      // Build conversation history for Claude
+      const conversationHistory = messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
+      // Add the new user message
+      conversationHistory.push({
+        role: 'user',
+        content: currentInput
+      });
+
+      // Call OUR secure API route with full conversation history
       const response = await fetch('/api/tutor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: currentInput,
+          messages: conversationHistory, // Send FULL conversation!
           subject: subject,
-          gradeLevel: studentProfile?.grade_level || '4th',
+          gradeLevel: studentProfile?.grade_level || '4',
           context: context || 'General learning'
         })
       });
