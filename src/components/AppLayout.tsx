@@ -37,7 +37,7 @@ export default function AppLayout() {
           <div className="flex justify-between h-20 items-center">
             <button onClick={scrollToTop} className="flex items-center gap-3 hover:opacity-90 transition">
               <img 
-                src="https://d64gsuwffb70l.cloudfront.net/68caf8605a414d406590b724_1760015224395_1fa7a05d.jpeg" 
+                src="/images/lga-logo.png" 
                 alt="Literary Genius Academy" 
                 className="w-14 h-14 rounded-full border-2 border-[#d4af37]"
               />
