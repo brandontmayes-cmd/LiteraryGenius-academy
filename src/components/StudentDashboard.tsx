@@ -125,7 +125,7 @@ export function StudentDashboard() {
       <div className="bg-[#1e3a5f] -mx-6 -mt-6 px-6 py-4 mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img 
-            src="https://d64gsuwffb70l.cloudfront.net/68caf8605a414d406590b724_1760015224395_1fa7a05d.jpeg" 
+            src="/images/lga-logo.png" 
             alt="Literary Genius Academy" 
             className="w-12 h-12 rounded-full border-2 border-[#d4af37] cursor-pointer hover:opacity-90 transition"
             onClick={() => window.location.href = '/'}
