@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
@@ -30,7 +29,6 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -58,9 +56,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     try {
       if (activeTab === 'login') {
         await login({ email: formData.email, password: formData.password });
+        // Modal will close and Index.tsx will auto-redirect to /dashboard
         onClose();
-        // Navigate to dashboard after successful login
-        navigate('/dashboard');
       } else {
         await register(formData);
         // Don't close modal - show verification pending state
