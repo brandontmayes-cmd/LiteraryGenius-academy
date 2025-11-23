@@ -22,7 +22,7 @@ import ParentAccessRequestManager from './ParentAccessRequestManager';
 import CurriculumBrowser from './CurriculumBrowser';
 import EnhancedLessonPlayer from './EnhancedLessonPlayer';
 import StandardsPracticeDashboard from './StandardsPracticeDashboard';
-import ComprehensiveDiagnosticTest from './ComprehensiveDiagnosticTest';
+import DiagnosticTest from './DiagnosticTest';
 import { AITutor } from './AITutor';
 import StandardsBrowser from './StandardsBrowser';
 
@@ -238,15 +238,16 @@ export function StudentDashboard() {
           )}
         </TabsContent>
 
-        <TabsContent value="diagnostic" className="space-y-4">
-          <ComprehensiveDiagnosticTest
-            studentId={user?.id || ''}
-            onComplete={(results) => {
-              console.log('Diagnostic results:', results);
-              setActiveTab('curriculum');
-            }}
-          />
-        </TabsContent>
+     <TabsContent value="diagnostic" className="space-y-4">
+  <DiagnosticTest
+    studentId={user?.id || ''}
+    studentGrade={profile?.grade || '5'}
+    onComplete={(results) => {
+      console.log('Diagnostic results:', results);
+      setActiveTab('curriculum');
+    }}
+  />
+</TabsContent>
 
 
         <TabsContent value="parent-access" className="space-y-4">
