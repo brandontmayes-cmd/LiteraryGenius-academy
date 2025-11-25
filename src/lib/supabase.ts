@@ -96,3 +96,10 @@ export interface Grade {
   graded_at: string
   created_at: string
 }
+export const supabaseFunctions = createClient(
+  supabaseUrl, 
+  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '',
+  {
+    auth: { persistSession: false }
+  }
+)

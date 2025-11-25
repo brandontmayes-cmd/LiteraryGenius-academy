@@ -20,6 +20,7 @@ import GroupChat from './GroupChat';
 import PeerReviewSystem from './PeerReviewSystem';
 import ParentAccessRequestManager from './ParentAccessRequestManager';
 import CurriculumBrowser from './CurriculumBrowser';
+import TestStandardsDisplay from './TestStandardsDisplay';
 import EnhancedLessonPlayer from './EnhancedLessonPlayer';
 import StandardsPracticeDashboard from './StandardsPracticeDashboard';
 import DiagnosticTest from './DiagnosticTest';
@@ -231,10 +232,10 @@ export function StudentDashboard() {
               />
             </div>
           ) : (
-            <CurriculumBrowser
-              studentId={user?.id || ''}
-              onLessonSelect={setSelectedLesson}
-            />
+<CurriculumBrowser
+  studentId={user?.id || ''}
+  onLessonSelect={setSelectedLesson}
+/>
           )}
         </TabsContent>
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Brain, TrendingUp, TrendingDown } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase , supabaseFunctions } from '@/lib/supabase';
 
 interface Question {
   id: string;
@@ -84,10 +84,10 @@ export default function AdaptiveMathDiagnostic({
     }
   };
 
-  const generateQuestion = async (difficulty: number) => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/generate-diagnostic-question', {
+const generateQuestion = async (difficulty: number) => {
+  setLoading(true);
+  try {
+    const { data, error } = await supabaseFunctions.functions.invoke('generate-diagnostic-question', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
