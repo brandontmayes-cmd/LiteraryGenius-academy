@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase, supabaseFunctions } from '@/lib/supabase';
 import { CheckCircle2, XCircle, Target, ArrowLeft, Trophy } from 'lucide-react';
+import QuestionVisual from './QuestionVisual';
 
 interface Standard {
   id: number;
@@ -24,6 +25,18 @@ interface Question {
   choices?: string[];
   correctAnswer: string;
   explanation?: string;
+  visual?: {
+    type: 'bar' | 'line' | 'pie' | 'table' | 'image';
+    data?: Array<{ name: string; value: number }>;
+    headers?: string[];
+    rows?: string[][];
+    url?: string;
+    alt?: string;
+    title?: string;
+    xLabel?: string;
+    yLabel?: string;
+    caption?: string;
+  };
 }
 
 interface StandardPracticeSessionProps {
@@ -78,21 +91,37 @@ export default function StandardPracticeSession({
   };
 
   const generateQuestion = async () => {
+    console.log('=== STANDARD OBJECT ===');
+    console.log('Full standard:', standard);
+    console.log('standard.code:', standard.code);
+    console.log('standard.description:', standard.description);
+    console.log('standard.subject:', standard.subject);
+   
     setLoading(true);
     try {
       // Get the difficulty based on standard's grade
       const difficulty = parseFloat(standard.grade === 'K' ? '0' : standard.grade);
 
+      console.log('=== SENDING TO EDGE FUNCTION ===');
+      const requestBody = {
+        difficulty,
+        subject: standard.subject,
+        standardCode: standard.code,  // ✅ ADDED THIS!
+        standardDescription: standard.description,
+        previousQuestions: questions.map(q => standard.code)
+      };
+      console.log('Request body:', requestBody);
+
       const { data, error } = await supabaseFunctions.functions.invoke('generate-diagnostic-question', {
-        body: {
-          difficulty,
-          subject: standard.subject,
-          previousQuestions: questions.map(q => standard.code)
-        }
+        body: requestBody
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
+      console.log('Generated question:', data);
       setQuestions(prev => [...prev, data]);
     } catch (error) {
       console.error('Error generating question:', error);
@@ -315,6 +344,11 @@ export default function StandardPracticeSession({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-lg font-medium">{currentQuestion.text}</div>
+
+          {/* Visual Component */}
+          {currentQuestion.visual && (
+            <QuestionVisual visual={currentQuestion.visual} />
+          )}
 
           {/* Multiple Choice */}
           {currentQuestion.type === 'multiple_choice' && currentQuestion.choices && (
