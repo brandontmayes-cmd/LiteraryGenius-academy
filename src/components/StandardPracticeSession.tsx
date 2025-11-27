@@ -106,9 +106,9 @@ export default function StandardPracticeSession({
       const requestBody = {
         difficulty,
         subject: standard.subject,
-        standardCode: standard.code,  // ✅ ADDED THIS!
+        standardCode: standard.code,
         standardDescription: standard.description,
-        previousQuestions: questions.map(q => standard.code)
+        previousQuestions: questions.map(q => q.text) // ✅ Send actual question texts to avoid repeats!
       };
       console.log('Request body:', requestBody);
 

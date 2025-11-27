@@ -180,16 +180,48 @@ export default function QuestionVisual({ visual }: QuestionVisualProps) {
 
   // Render Image
   if (visual.type === 'image') {
+    const [imageError, setImageError] = React.useState(false);
+    const [imageLoading, setImageLoading] = React.useState(true);
+
     return (
       <Card className="my-4">
         <CardContent className="pt-6">
-          <img 
-            src={visual.url} 
-            alt={visual.alt}
-            className="max-w-full h-auto mx-auto rounded-lg"
-          />
-          {visual.caption && (
-            <p className="text-sm text-gray-600 text-center mt-2">{visual.caption}</p>
+          {imageLoading && !imageError && (
+            <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">Loading image...</p>
+              </div>
+            </div>
+          )}
+          
+          {imageError ? (
+            <div className="flex items-center justify-center h-64 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+              <div className="text-center p-4">
+                <p className="text-gray-600 mb-2">Image not available</p>
+                <p className="text-xs text-gray-500">{visual.alt || 'Educational diagram'}</p>
+                {visual.caption && (
+                  <p className="text-sm font-medium text-gray-700 mt-2">{visual.caption}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <img 
+                src={visual.url} 
+                alt={visual.alt}
+                className={`max-w-full h-auto mx-auto rounded-lg border border-gray-200 ${imageLoading ? 'hidden' : ''}`}
+                onLoad={() => setImageLoading(false)}
+                onError={() => {
+                  setImageError(true);
+                  setImageLoading(false);
+                }}
+                crossOrigin="anonymous"
+              />
+              {!imageLoading && visual.caption && (
+                <p className="text-sm text-gray-600 text-center mt-2 font-medium">{visual.caption}</p>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

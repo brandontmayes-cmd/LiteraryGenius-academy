@@ -40,17 +40,41 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [isAnswered, setIsAnswered] = useState(false);
   const [results, setResults] = useState<Array<{ correct: boolean; difficulty: number; domain: string }>>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
   const [currentDifficulty, setCurrentDifficulty] = useState(4); // Start at grade 4
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const TOTAL_QUESTIONS = 10;
   const domains = ['Numbers & Operations', 'Algebra', 'Geometry', 'Measurement & Data'];
 
   useEffect(() => {
-    // Generate first question on mount
-    generateQuestion(currentDifficulty);
+    initializeDiagnostic();
   }, []);
+
+  const initializeDiagnostic = async () => {
+    try {
+      // Create diagnostic session
+      const { data: session, error } = await supabase
+        .from('diagnostic_results')
+        .insert({
+          student_id: studentId,
+          subject: 'math',
+          completed: false
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setSessionId(session.id);
+
+      // Generate first question
+      await generateQuestion(currentDifficulty);
+    } catch (error) {
+      console.error('Error initializing diagnostic:', error);
+      setLoading(false);
+    }
+  };
 
   const generateQuestion = async (difficulty: number) => {
     setLoading(true);
@@ -63,7 +87,7 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
           subject: 'math',
           standardCode: `${difficulty}.Math.Diagnostic`,
           standardDescription: `Grade ${difficulty} mathematics diagnostic assessment`,
-          previousQuestions: questions.map(q => q.text) // Send question texts to avoid repeats
+          previousQuestions: questions.map(q => q.id)
         }
       });
 
@@ -83,19 +107,14 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
       setQuestions(prev => [...prev, question]);
     } catch (error) {
       console.error('Error generating question:', error);
-      // Use a fallback question if generation fails
+      // If generation fails, use a fallback question
       const fallbackQuestion: Question = {
         id: crypto.randomUUID(),
-        text: `What is ${difficulty * 2} + ${difficulty * 3}?`,
+        text: 'What is 5 + 7?',
         type: 'multiple_choice',
-        choices: [
-          `${difficulty * 4}`,
-          `${difficulty * 5}`,
-          `${difficulty * 6}`,
-          `${difficulty * 7}`
-        ],
-        correctAnswer: `${difficulty * 5}`,
-        explanation: `${difficulty * 2} + ${difficulty * 3} = ${difficulty * 5}`,
+        choices: ['10', '11', '12', '13'],
+        correctAnswer: '12',
+        explanation: '5 + 7 = 12',
         difficulty,
         domain: 'Numbers & Operations'
       };
@@ -186,30 +205,18 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
         weaknesses
       };
 
-      // Try to save to database (but don't fail if it errors)
-      try {
-        const { error: saveError } = await supabase
+      // Save to database
+      if (sessionId) {
+        await supabase
           .from('diagnostic_results')
-          .insert({
-            student_id: studentId,
-            subject: 'math',
-            score_percentage: overallScore,
-            questions_correct: correctCount,
-            questions_total: results.length,
-            grade_level: suggestedGradeLevel.toString(),
-            strengths: strengths,
-            weaknesses: weaknesses,
-            recommended_standards: domainScores,
+          .update({
+            score: overallScore,
+            grade_level: suggestedGradeLevel,
+            results: diagnosticResults,
+            completed: true,
             completed_at: new Date().toISOString()
-          });
-
-        if (saveError) {
-          console.warn('Could not save to database:', saveError);
-        } else {
-          console.log('Successfully saved diagnostic results');
-        }
-      } catch (saveError) {
-        console.warn('Database save failed, but continuing:', saveError);
+          })
+          .eq('id', sessionId);
       }
 
       setShowResults(true);
@@ -255,8 +262,6 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
               const total = domainResults.length;
               const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-              if (total === 0) return null;
-
               return (
                 <div key={domain} className="space-y-2">
                   <div className="flex justify-between">
@@ -272,27 +277,20 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
           </div>
 
           <div className="bg-purple-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-purple-900 mb-2">📚 Recommended Next Steps</h4>
+            <h4 className="font-semibold text-purple-900 mb-2">Recommended Next Steps</h4>
             <p className="text-purple-800">
-              Based on your performance, we recommend starting with <strong>Grade {currentDifficulty}</strong> content.
+              Based on your performance, we recommend starting with Grade {currentDifficulty} content.
               Focus on practicing skills to build a strong foundation.
             </p>
           </div>
 
-          <Button 
-            onClick={() => {
-              const diagnosticResults: DiagnosticResults = {
-                overallScore,
-                domainScores: {},
-                suggestedGradeLevel: currentDifficulty,
-                strengths: [],
-                weaknesses: []
-              };
-              onComplete(diagnosticResults);
-            }} 
-            className="w-full"
-            size="lg"
-          >
+          <Button onClick={() => onComplete({
+            overallScore,
+            domainScores: {},
+            suggestedGradeLevel: currentDifficulty,
+            strengths: [],
+            weaknesses: []
+          })} className="w-full">
             Continue to Dashboard
           </Button>
         </CardContent>
@@ -306,7 +304,7 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
         <CardContent className="py-12">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="text-gray-600">Generating your first question...</p>
+            <p className="text-gray-600">Generating diagnostic questions...</p>
           </div>
         </CardContent>
       </Card>
@@ -314,18 +312,7 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  if (!currentQuestion) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="py-12">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="text-gray-600">Loading question...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (!currentQuestion) return null;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
@@ -433,9 +420,8 @@ export default function AdaptiveMathDiagnostic({ studentId, onComplete }: Adapti
                 Submit Answer
               </Button>
             ) : (
-              <Button onClick={handleNextQuestion} size="lg" disabled={loading}>
-                {loading ? 'Generating...' : 
-                 currentQuestionIndex + 1 < TOTAL_QUESTIONS ? 'Next Question' : 'See Results'}
+              <Button onClick={handleNextQuestion} size="lg">
+                {currentQuestionIndex + 1 < TOTAL_QUESTIONS ? 'Next Question' : 'See Results'}
               </Button>
             )}
           </div>
