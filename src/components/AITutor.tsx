@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Lightbulb, BookOpen, Target } from 'lucide-react';
+import { Send, Bot, User, Lightbulb, BookOpen, Target, Camera, X, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,8 @@ interface Message {
   sender: 'user' | 'ai';
   timestamp: Date;
   suggestions?: string[];
+  imageUrl?: string; // For displaying uploaded images
+  imageData?: string; // For sending to API (base64)
 }
 
 interface AITutorProps {
@@ -36,25 +38,69 @@ export const AITutor: React.FC<AITutorProps> = ({
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check if it's an image
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+
+    // Convert to base64 for API
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      // Remove the data:image/...;base64, prefix
+      const base64Data = base64String.split(',')[1];
+      setSelectedImage(base64Data);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !selectedImage) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: input,
+      content: input || 'Can you help me understand this?',
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      imageUrl: imagePreview || undefined,
+      imageData: selectedImage || undefined
     };
 
     setMessages(prev => [...prev, userMessage]);
     const currentInput = input;
+    const currentImage = selectedImage;
     setInput('');
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setIsLoading(true);
 
     try {
@@ -64,11 +110,31 @@ export const AITutor: React.FC<AITutorProps> = ({
         content: msg.content
       }));
 
-      // Add the new user message
-      conversationHistory.push({
+      // Prepare the new message content
+      const messageContent: any = {
         role: 'user',
-        content: currentInput
+        content: []
+      };
+
+      // Add image if present
+      if (currentImage) {
+        messageContent.content.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: 'image/jpeg', // or detect from file
+            data: currentImage
+          }
+        });
+      }
+
+      // Add text
+      messageContent.content.push({
+        type: 'text',
+        text: currentInput || 'Can you help me understand this problem? Please explain it step by step.'
       });
+
+      conversationHistory.push(messageContent);
 
       // Call OUR secure API route with full conversation history
       const response = await fetch('/api/tutor', {
@@ -77,7 +143,7 @@ export const AITutor: React.FC<AITutorProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: conversationHistory, // Send FULL conversation!
+          messages: conversationHistory,
           subject: subject,
           gradeLevel: studentProfile?.grade_level || '4',
           context: context || 'General learning'
@@ -153,6 +219,16 @@ export const AITutor: React.FC<AITutorProps> = ({
                       ? 'bg-blue-50 text-blue-900 border border-blue-200' 
                       : 'bg-gray-50 text-gray-900 border border-gray-200 ml-auto'
                   }`}>
+                    {message.imageUrl && (
+                      <div className="mb-2">
+                        <img 
+                          src={message.imageUrl} 
+                          alt="Uploaded homework" 
+                          className="max-w-full rounded border border-gray-300"
+                          style={{ maxHeight: '300px' }}
+                        />
+                      </div>
+                    )}
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   </div>
                   
@@ -201,18 +277,56 @@ export const AITutor: React.FC<AITutorProps> = ({
         </ScrollArea>
         
         <div className="p-4 border-t">
+          {/* Image Preview */}
+          {imagePreview && (
+            <div className="mb-3 relative inline-block">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-32 rounded border border-gray-300"
+              />
+              <button
+                onClick={removeImage}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          
           <div className="flex gap-2">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            
+            {/* Camera/Upload button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              title="Upload homework photo"
+            >
+              <Camera className="w-4 h-4" />
+            </Button>
+            
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything about your studies..."
+              placeholder={selectedImage ? "Describe what you need help with..." : "Ask me anything about your studies..."}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               className="flex-1"
               disabled={isLoading}
             />
             <Button 
               onClick={sendMessage} 
-              disabled={!input.trim() || isLoading}
+              disabled={(!input.trim() && !selectedImage) || isLoading}
               size="icon"
             >
               <Send className="w-4 h-4" />
