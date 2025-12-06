@@ -59,22 +59,50 @@ export const AITutor: React.FC<AITutorProps> = ({
       
       if (SpeechRecognition) {
         const recognitionInstance = new SpeechRecognition();
-        recognitionInstance.continuous = false;
-        recognitionInstance.interimResults = false;
+        recognitionInstance.continuous = true; // Keep listening
+        recognitionInstance.interimResults = true; // Show partial results
         recognitionInstance.lang = 'en-US';
+        recognitionInstance.maxAlternatives = 1;
 
         recognitionInstance.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          setInput(prev => prev + (prev ? ' ' : '') + transcript);
+          let finalTranscript = '';
+          let interimTranscript = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+          
+          if (finalTranscript) {
+            setInput(prev => (prev + ' ' + finalTranscript).trim());
+          }
         };
 
         recognitionInstance.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
-          setIsListening(false);
+          if (event.error === 'no-speech') {
+            // No speech detected, but don't stop - let user try again
+            console.log('No speech detected, still listening...');
+          } else {
+            setIsListening(false);
+          }
         };
 
         recognitionInstance.onend = () => {
-          setIsListening(false);
+          // If still supposed to be listening, restart
+          if (isListening) {
+            try {
+              recognitionInstance.start();
+            } catch (e) {
+              setIsListening(false);
+            }
+          } else {
+            setIsListening(false);
+          }
         };
 
         setRecognition(recognitionInstance);
@@ -85,7 +113,7 @@ export const AITutor: React.FC<AITutorProps> = ({
         setSpeechSynthesis(window.speechSynthesis);
       }
     }
-  }, []);
+  }, [isListening]);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -151,8 +179,23 @@ export const AITutor: React.FC<AITutorProps> = ({
     // Stop any current speech
     speechSynthesis.cancel();
 
+    // Remove emojis from text before speaking
+    const textWithoutEmojis = text.replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Symbols & Pictographs
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport & Map
+      .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Flags
+      .replace(/[\u{2600}-\u{26FF}]/gu, '') // Misc symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, '') // Dingbats
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols
+      .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Extended symbols
+      .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // More symbols
+      .replace(/[\u{FE00}-\u{FE0F}]/gu, '') // Variation selectors
+      .replace(/[\u{200D}]/gu, '') // Zero-width joiner
+      .replace(/\s+/g, ' ') // Clean up extra spaces
+      .trim();
+
     // Create utterance
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(textWithoutEmojis);
     utterance.rate = 0.9; // Slightly slower for kids
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
