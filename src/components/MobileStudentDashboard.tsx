@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, BookOpen, Calendar, Trophy, Target, Clock, ChevronRight } from 'lucide-react';
+import { Bell, BookOpen, Calendar, Trophy, Target, Clock, ChevronRight, Brain, GraduationCap, ClipboardCheck, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button';
 import { MobileAssignmentSubmission } from './MobileAssignmentSubmission';
 import { QuickAccessWidget } from './QuickAccessWidget';
 import { BiometricAuthSetup } from './BiometricAuthSetup';
+import { AITutor } from './AITutor';
+import CurriculumBrowser from './CurriculumBrowser';
+import DiagnosticTest from './DiagnosticTest';
+import StandardsPracticeDashboard from './StandardsPracticeDashboard';
 import { supabase } from '@/lib/supabase';
 
 
@@ -30,6 +34,10 @@ export const MobileStudentDashboard: React.FC<MobileStudentDashboardProps> = ({
 }) => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [showAITutor, setShowAITutor] = useState(false);
+  const [showCurriculum, setShowCurriculum] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [showPractice, setShowPractice] = useState(false);
   const [stats, setStats] = useState({
     totalAssignments: 0,
     completedAssignments: 0,
@@ -105,6 +113,97 @@ export const MobileStudentDashboard: React.FC<MobileStudentDashboardProps> = ({
         onSubmit={handleAssignmentSubmit}
         onClose={() => setSelectedAssignment(null)}
       />
+    );
+  }
+
+  // Show AI Tutor
+  if (showAITutor) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-[#1e3a5f] p-4 sticky top-0 z-10 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowAITutor(false)}
+            className="text-[#f5e6d3] hover:text-[#d4af37]"
+          >
+            ← Back
+          </Button>
+          <h1 className="text-lg font-bold text-[#f5e6d3]">AI Tutor</h1>
+        </div>
+        <div className="p-4">
+          <AITutor />
+        </div>
+      </div>
+    );
+  }
+
+  // Show Curriculum Browser
+  if (showCurriculum) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-[#1e3a5f] p-4 sticky top-0 z-10 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowCurriculum(false)}
+            className="text-[#f5e6d3] hover:text-[#d4af37]"
+          >
+            ← Back
+          </Button>
+          <h1 className="text-lg font-bold text-[#f5e6d3]">Curriculum</h1>
+        </div>
+        <div className="p-4">
+          <CurriculumBrowser />
+        </div>
+      </div>
+    );
+  }
+
+  // Show Diagnostic Test
+  if (showDiagnostic) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-[#1e3a5f] p-4 sticky top-0 z-10 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowDiagnostic(false)}
+            className="text-[#f5e6d3] hover:text-[#d4af37]"
+          >
+            ← Back
+          </Button>
+          <h1 className="text-lg font-bold text-[#f5e6d3]">Diagnostic Test</h1>
+        </div>
+        <div className="p-4">
+          <DiagnosticTest 
+            studentId={userId}
+            onComplete={() => setShowDiagnostic(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show Standards Practice
+  if (showPractice) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-[#1e3a5f] p-4 sticky top-0 z-10 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowPractice(false)}
+            className="text-[#f5e6d3] hover:text-[#d4af37]"
+          >
+            ← Back
+          </Button>
+          <h1 className="text-lg font-bold text-[#f5e6d3]">Practice Standards</h1>
+        </div>
+        <div className="p-4">
+          <StandardsPracticeDashboard />
+        </div>
+      </div>
     );
   }
 
@@ -199,6 +298,64 @@ export const MobileStudentDashboard: React.FC<MobileStudentDashboardProps> = ({
                 value={(stats.completedAssignments / Math.max(stats.totalAssignments, 1)) * 100} 
                 className="h-2"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Learning Tools - Quick Access */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Learning Tools</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-300"
+                onClick={() => setShowAITutor(true)}
+              >
+                <Brain className="w-6 h-6 text-blue-600" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">AI Tutor</div>
+                  <div className="text-xs text-gray-500">Get help 24/7</div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-green-50 hover:border-green-300"
+                onClick={() => setShowCurriculum(true)}
+              >
+                <BookOpen className="w-6 h-6 text-green-600" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">Curriculum</div>
+                  <div className="text-xs text-gray-500">Browse lessons</div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-purple-50 hover:border-purple-300"
+                onClick={() => setShowDiagnostic(true)}
+              >
+                <ClipboardCheck className="w-6 h-6 text-purple-600" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">Diagnostic</div>
+                  <div className="text-xs text-gray-500">Test your level</div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-300"
+                onClick={() => setShowPractice(true)}
+              >
+                <Zap className="w-6 h-6 text-orange-600" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">Practice</div>
+                  <div className="text-xs text-gray-500">Master standards</div>
+                </div>
+              </Button>
             </div>
           </CardContent>
         </Card>
