@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Lightbulb, BookOpen, Target, Camera, X, Image as ImageIcon } from 'lucide-react';
+import { Send, Bot, User, Lightbulb, BookOpen, Target, Camera, X, Image as ImageIcon, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,12 +40,52 @@ export const AITutor: React.FC<AITutorProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Initialize speech recognition (voice input)
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        const recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = false;
+        recognitionInstance.interimResults = false;
+        recognitionInstance.lang = 'en-US';
+
+        recognitionInstance.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(prev => prev + (prev ? ' ' : '') + transcript);
+        };
+
+        recognitionInstance.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+        };
+
+        recognitionInstance.onend = () => {
+          setIsListening(false);
+        };
+
+        setRecognition(recognitionInstance);
+      }
+
+      // Initialize speech synthesis (text-to-speech)
+      if (window.speechSynthesis) {
+        setSpeechSynthesis(window.speechSynthesis);
+      }
+    }
+  }, []);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -78,6 +118,66 @@ export const AITutor: React.FC<AITutorProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const toggleVoiceInput = () => {
+    if (!recognition) {
+      alert('Voice input is not supported in your browser. Please try Chrome or Safari.');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
+  const speakText = (text: string, messageId: string) => {
+    if (!speechSynthesis) {
+      alert('Text-to-speech is not supported in your browser.');
+      return;
+    }
+
+    // If already speaking this message, stop it
+    if (speakingMessageId === messageId) {
+      speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    // Stop any current speech
+    speechSynthesis.cancel();
+
+    // Create utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9; // Slightly slower for kids
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    // Get a kid-friendly voice if available
+    const voices = speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice => 
+      voice.name.includes('Google') || 
+      voice.name.includes('Samantha') ||
+      voice.name.includes('Karen')
+    );
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    setSpeakingMessageId(messageId);
+    speechSynthesis.speak(utterance);
   };
 
   const sendMessage = async () => {
@@ -230,6 +330,30 @@ export const AITutor: React.FC<AITutorProps> = ({
                       </div>
                     )}
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    
+                    {/* Speaker button for AI messages */}
+                    {message.sender === 'ai' && (
+                      <div className="mt-2 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => speakText(message.content, message.id)}
+                          className="h-7 text-xs"
+                        >
+                          {speakingMessageId === message.id ? (
+                            <>
+                              <VolumeX className="w-3 h-3 mr-1" />
+                              Stop
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3 h-3 mr-1" />
+                              Listen
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
                   {message.suggestions && (
@@ -294,6 +418,18 @@ export const AITutor: React.FC<AITutorProps> = ({
             </div>
           )}
           
+          {/* Listening indicator */}
+          {isListening && (
+            <div className="mb-2 flex items-center gap-2 text-sm text-blue-600">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              </div>
+              <span>Listening... Speak now!</span>
+            </div>
+          )}
+          
           <div className="flex gap-2">
             {/* Hidden file input */}
             <input
@@ -316,10 +452,23 @@ export const AITutor: React.FC<AITutorProps> = ({
               <Camera className="w-4 h-4" />
             </Button>
             
+            {/* Microphone button */}
+            <Button
+              type="button"
+              variant={isListening ? "default" : "outline"}
+              size="icon"
+              onClick={toggleVoiceInput}
+              disabled={isLoading}
+              title="Voice input"
+              className={isListening ? "bg-red-500 hover:bg-red-600" : ""}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </Button>
+            
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={selectedImage ? "Describe what you need help with..." : "Ask me anything about your studies..."}
+              placeholder={selectedImage ? "Describe what you need help with..." : isListening ? "Listening..." : "Ask me anything about your studies..."}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               className="flex-1"
               disabled={isLoading}
