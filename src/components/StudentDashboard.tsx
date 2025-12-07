@@ -54,7 +54,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             <div className="flex items-center gap-3">
               {/* Replace with your actual logo image */}
               <img 
-                src="/path-to-your-logo/LGA-Logo.svg" 
+                src="/logo" 
                 alt="Literary Genius Academy" 
                 className="h-12 w-12"
               />
