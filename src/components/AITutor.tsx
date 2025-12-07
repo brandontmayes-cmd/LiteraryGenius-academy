@@ -59,50 +59,41 @@ export const AITutor: React.FC<AITutorProps> = ({
       
       if (SpeechRecognition) {
         const recognitionInstance = new SpeechRecognition();
-        recognitionInstance.continuous = true; // Keep listening
-        recognitionInstance.interimResults = true; // Show partial results
+        
+        // iOS Safari optimization: Use simpler, more reliable settings
+        recognitionInstance.continuous = false; // Single utterance mode for iOS
+        recognitionInstance.interimResults = false; // Final results only
         recognitionInstance.lang = 'en-US';
         recognitionInstance.maxAlternatives = 1;
 
+        recognitionInstance.onstart = () => {
+          console.log('Speech recognition started');
+          setIsListening(true);
+        };
+
         recognitionInstance.onresult = (event: any) => {
-          let finalTranscript = '';
-          let interimTranscript = '';
-          
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
-            }
-          }
-          
-          if (finalTranscript) {
-            setInput(prev => (prev + ' ' + finalTranscript).trim());
-          }
+          console.log('Speech recognition result');
+          const transcript = event.results[0][0].transcript;
+          setInput(prev => {
+            const newText = prev ? prev + ' ' + transcript : transcript;
+            return newText.trim();
+          });
         };
 
         recognitionInstance.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
-          if (event.error === 'no-speech') {
-            // No speech detected, but don't stop - let user try again
-            console.log('No speech detected, still listening...');
-          } else {
-            setIsListening(false);
+          setIsListening(false);
+          
+          if (event.error === 'not-allowed') {
+            alert('Microphone access denied. Please enable microphone in Settings.');
+          } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+            alert(`Voice input error: ${event.error}. Please try again.`);
           }
         };
 
         recognitionInstance.onend = () => {
-          // If still supposed to be listening, restart
-          if (isListening) {
-            try {
-              recognitionInstance.start();
-            } catch (e) {
-              setIsListening(false);
-            }
-          } else {
-            setIsListening(false);
-          }
+          console.log('Speech recognition ended');
+          setIsListening(false);
         };
 
         setRecognition(recognitionInstance);
@@ -111,9 +102,14 @@ export const AITutor: React.FC<AITutorProps> = ({
       // Initialize speech synthesis (text-to-speech)
       if (window.speechSynthesis) {
         setSpeechSynthesis(window.speechSynthesis);
+        
+        // Load voices (needed for iOS)
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
       }
     }
-  }, [isListening]);
+  }, []);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -155,11 +151,22 @@ export const AITutor: React.FC<AITutorProps> = ({
     }
 
     if (isListening) {
-      recognition.stop();
+      // Stop listening
+      try {
+        recognition.stop();
+      } catch (e) {
+        console.error('Error stopping recognition:', e);
+      }
       setIsListening(false);
     } else {
-      recognition.start();
-      setIsListening(true);
+      // Start listening
+      try {
+        recognition.start();
+        // Don't set isListening here - let onstart event handle it
+      } catch (e) {
+        console.error('Error starting recognition:', e);
+        alert('Could not start voice input. Please try again.');
+      }
     }
   };
 
@@ -463,13 +470,18 @@ export const AITutor: React.FC<AITutorProps> = ({
           
           {/* Listening indicator */}
           {isListening && (
-            <div className="mb-2 flex items-center gap-2 text-sm text-blue-600">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                <span className="font-medium">🎤 Listening... Speak now!</span>
               </div>
-              <span>Listening... Speak now!</span>
+              <div className="text-xs text-red-500 mt-1">
+                Speak your question clearly. It will stop automatically when you're done.
+              </div>
             </div>
           )}
           
