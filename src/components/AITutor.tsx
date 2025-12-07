@@ -85,8 +85,14 @@ export const AITutor: React.FC<AITutorProps> = ({
           setIsListening(false);
           
           if (event.error === 'not-allowed') {
-            alert('Microphone access denied. Please enable microphone in Settings.');
-          } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+            alert('🎤 Microphone Permission Needed\n\nTo use voice input:\n1. Go to iPhone Settings\n2. Scroll to Safari\n3. Enable Microphone\n4. Come back and try again!');
+          } else if (event.error === 'no-speech') {
+            // User didn't speak - don't show error, just stop
+            console.log('No speech detected');
+          } else if (event.error === 'aborted') {
+            // User cancelled - no error needed
+            console.log('Speech recognition aborted');
+          } else {
             alert(`Voice input error: ${event.error}. Please try again.`);
           }
         };
