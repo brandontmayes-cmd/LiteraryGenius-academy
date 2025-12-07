@@ -118,8 +118,8 @@ export const StudentView = () => {
           <div className="container mx-auto p-4">
             <AITutor
               studentProfile={studentProfile}
-              subject="General"
-              context="Homework help - upload a photo or ask questions"
+              subject="Homework Help"
+              context="Upload a photo of your homework or ask any question!"
             />
           </div>
         </div>

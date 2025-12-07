@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';  // ← Move this to top with other imports
 import { 
   BookOpen, 
   Pen,
@@ -23,6 +24,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   studentName = 'Young Author',
   onNavigate
 }) => {
+  const navigate = useNavigate();  // ← Add this INSIDE the component
   const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'books' | 'coach' | 'homework'>('dashboard');
 
   // Sample books data (replace with real data from your backend)
@@ -52,7 +54,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <div className="flex items-center justify-between">
             {/* Logo Section */}
             <div className="flex items-center gap-3">
-              {/* Replace with your actual logo image */}
               <img 
                 src="/logo" 
                 alt="Literary Genius Academy" 
@@ -66,13 +67,23 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             </div>
 
-            {/* User Menu */}
+            {/* User Menu - UPDATED BUTTONS */}
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">Hello, {studentName}!</span>
-              <Button variant="ghost" size="icon">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/settings')}
+                title="Profile"
+              >
                 <User className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/settings')}
+                title="Settings"
+              >
                 <Settings className="w-5 h-5" />
               </Button>
             </div>
