@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   BookOpen, 
   Pen,
@@ -16,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { BookViewer } from '@/components/BookViewer';
 
 interface StudentDashboardProps {
   studentName?: string;
@@ -30,11 +30,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   draftBooks = [],
   onNavigate
 }) => {
-  const navigate = useNavigate();
-  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'books' | 'coach' | 'homework'>('dashboard');
+  const [selectedBook, setSelectedBook] = useState<any>(null);
 
   const handleNavigate = (view: string) => {
-    setActiveView(view as any);
     if (onNavigate) {
       onNavigate(view);
     }
@@ -53,11 +51,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl blur-sm"></div>
-                <img 
-                  src="/logo" 
-                  alt="Literary Genius Academy" 
-                  className="relative h-12 w-12 rounded-xl"
-                />
+                <div className="relative h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white text-xl font-bold">
+                  ?
+                </div>
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -75,7 +71,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => navigate('/settings')}
                 className="rounded-full hover:bg-purple-100"
               >
                 <User className="w-5 h-5 text-gray-600" />
@@ -83,7 +78,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => navigate('/settings')}
                 className="rounded-full hover:bg-purple-100"
               >
                 <Settings className="w-5 h-5 text-gray-600" />
@@ -298,7 +292,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             {publishedBooks.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {publishedBooks.map((book) => (
-                  <div key={book.id} className="group cursor-pointer">
+                  <div 
+                    key={book.id} 
+                    className="group cursor-pointer"
+                    onClick={() => setSelectedBook(book)}
+                  >
                     <div className="aspect-[3/4] bg-gradient-to-br from-purple-200 via-pink-200 to-rose-200 rounded-lg mb-3 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all overflow-hidden relative">
                       {book.cover_image ? (
                         <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
@@ -368,6 +366,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
       </main>
+
+      {/* Book Viewer Modal */}
+      {selectedBook && (
+        <BookViewer 
+          book={selectedBook} 
+          onClose={() => setSelectedBook(null)} 
+        />
+      )}
     </div>
   );
 };
