@@ -295,8 +295,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <div 
                     key={book.id} 
                     className="group cursor-pointer"
-                    onClick={() => setSelectedBook(book)}
-                  >
+                      onClick={() => {
+    console.log('Clicked book:', book);
+    alert('Book clicked: ' + book.title);
+    setSelectedBook(book);
+  }}
+>
                     <div className="aspect-[3/4] bg-gradient-to-br from-purple-200 via-pink-200 to-rose-200 rounded-lg mb-3 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all overflow-hidden relative">
                       {book.cover_image ? (
                         <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
