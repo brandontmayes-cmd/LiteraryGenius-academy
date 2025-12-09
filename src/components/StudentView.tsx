@@ -1,65 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentDashboard } from '@/components/StudentDashboard';
 import { BookCreator } from '@/components/BookCreator';
 import { AITutor } from '@/components/AITutor';
+import { BookService } from '@/services/bookService';
+import { useAuth } from '@/contexts/AuthContext'; // Your auth context
 
 export const StudentView = () => {
-  // Track which view is active
   const [currentView, setCurrentView] = useState('dashboard');
+  const [books, setBooks] = useState([]);
+  const [currentBook, setCurrentBook] = useState(null);
+  const { user } = useAuth(); // Get current user
   
-  // Get student info (replace with your actual auth/user data)
   const studentProfile = {
-    name: 'Alivia', // Or get from your auth system
-    grade_level: '4'
+    id: user?.id,
+    name: user?.user_metadata?.name || 'Young Author',
+    grade_level: user?.user_metadata?.grade_level || 4
   };
 
-  // Handle navigation between views
+  // Load books when component mounts
+  useEffect(() => {
+    if (user?.id) {
+      loadBooks();
+    }
+  }, [user?.id]);
+
+  const loadBooks = async () => {
+    const studentBooks = await BookService.getStudentBooks(user.id);
+    setBooks(studentBooks);
+  };
+
   const handleNavigate = (view: string) => {
-    console.log('Navigating to:', view);
+    if (view === 'create') {
+      setCurrentBook(null); // New book
+    }
     setCurrentView(view);
   };
 
-  // Handle book save
-  const handleSaveBook = (book: any) => {
-    console.log('Saving book:', book);
-    // TODO: Call your API to save the book
-    // fetch('/api/books/save', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ book })
-    // });
-    alert('Book saved! ✅');
+  const handleSaveBook = async (book: any) => {
+    const result = await BookService.saveBook(book, user.id);
+    
+    if (result.success) {
+      alert('Book saved! ✅');
+      await loadBooks(); // Reload books
+    } else {
+      alert(`Error saving book: ${result.error}`);
+    }
   };
 
-  // Handle book publish
-  const handlePublishBook = (book: any) => {
-    console.log('Publishing book:', book);
-    // TODO: Call your API to publish the book
-    // fetch('/api/books/publish', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ book })
-    // });
-    alert('🎉 Congratulations! Your book is published!');
+  const handlePublishBook = async (book: any) => {
+    const result = await BookService.publishBook(book, user.id);
     
-    // Navigate back to dashboard to see the published book
-    setCurrentView('dashboard');
+    if (result.success) {
+      alert('🎉 Congratulations! Your book is published!');
+      await loadBooks(); // Reload books
+      setCurrentView('dashboard'); // Return to dashboard
+    } else {
+      alert(`Error publishing book: ${result.error}`);
+    }
   };
 
   return (
     <div className="min-h-screen">
-      {/* DASHBOARD VIEW */}
       {currentView === 'dashboard' && (
         <StudentDashboard
           studentName={studentProfile.name}
+          publishedBooks={books.filter(b => b.status === 'published')}
+          draftBooks={books.filter(b => b.status === 'draft')}
           onNavigate={handleNavigate}
         />
       )}
 
-      {/* BOOK CREATOR VIEW */}
       {currentView === 'create' && (
         <div className="min-h-screen bg-gray-50">
-          {/* Back button */}
           <div className="bg-white border-b p-4">
             <button
               onClick={() => setCurrentView('dashboard')}
@@ -72,6 +84,7 @@ export const StudentView = () => {
           <div className="container mx-auto p-4">
             <BookCreator
               studentProfile={studentProfile}
+              existingBook={currentBook}
               onSave={handleSaveBook}
               onPublish={handlePublishBook}
             />
@@ -79,10 +92,8 @@ export const StudentView = () => {
         </div>
       )}
 
-      {/* WRITING COACH VIEW */}
       {currentView === 'coach' && (
         <div className="min-h-screen bg-gray-50">
-          {/* Back button */}
           <div className="bg-white border-b p-4">
             <button
               onClick={() => setCurrentView('dashboard')}
@@ -102,10 +113,8 @@ export const StudentView = () => {
         </div>
       )}
 
-      {/* HOMEWORK HELPER VIEW */}
       {currentView === 'homework' && (
         <div className="min-h-screen bg-gray-50">
-          {/* Back button */}
           <div className="bg-white border-b p-4">
             <button
               onClick={() => setCurrentView('dashboard')}
@@ -121,28 +130,6 @@ export const StudentView = () => {
               subject="Homework Help"
               context="Upload a photo of your homework or ask any question!"
             />
-          </div>
-        </div>
-      )}
-
-      {/* BOOKS VIEW (Portfolio) */}
-      {currentView === 'books' && (
-        <div className="min-h-screen bg-gray-50">
-          {/* Back button */}
-          <div className="bg-white border-b p-4">
-            <button
-              onClick={() => setCurrentView('dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
-            >
-              ← Back to Dashboard
-            </button>
-          </div>
-          
-          <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6">My Published Books</h1>
-            <p className="text-gray-600">
-              Book portfolio view coming soon! This will show all of {studentProfile.name}'s published books.
-            </p>
           </div>
         </div>
       )}

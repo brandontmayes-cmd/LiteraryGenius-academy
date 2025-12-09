@@ -96,6 +96,30 @@ export interface Grade {
   graded_at: string
   created_at: string
 }
+
+export interface Book {
+  id: string
+  student_id: string
+  title: string
+  author: string
+  genre?: string
+  cover_image?: string
+  status: 'draft' | 'published'
+  created_at: string
+  updated_at: string
+  published_at?: string
+  pages?: BookPage[]
+}
+
+export interface BookPage {
+  id: string
+  book_id: string
+  page_number: number
+  text?: string
+  image_url?: string
+  created_at: string
+  updated_at: string
+}
 export const supabaseFunctions = createClient(
   supabaseUrl, 
   import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '',
