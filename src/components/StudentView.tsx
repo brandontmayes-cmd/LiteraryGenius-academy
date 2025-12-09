@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StudentDashboard } from '@/components/StudentDashboard';
 import { BookCreator } from '@/components/BookCreator';
 import { AITutor } from '@/components/AITutor';
-import { BookService } from '@/services/bookService';
+import { BookService } from '@/services/bookservice';
 import { useAuth } from '@/contexts/AuthContext'; // Your auth context
 
 export const StudentView = () => {
