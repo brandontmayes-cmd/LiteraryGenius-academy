@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, Sparkles, TrendingUp, Award, Heart, Mail, X, ChevronRight, Star, Zap, Users, Camera } from 'lucide-react'
+import { BookOpen, Sparkles, Award, Heart, Mail, X, ChevronRight, Star, Zap, Users, Camera, LogIn } from 'lucide-react'
 import { AuthModal } from './auth/AuthModal'
 
 export default function AppLayout() {
@@ -36,7 +36,27 @@ export default function AppLayout() {
             <div className="hidden md:flex gap-8 items-center">
               <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-purple-600 transition font-medium">Features</button>
               <button onClick={() => scrollToSection('about')} className="text-gray-700 hover:text-purple-600 transition font-medium">About</button>
+              {/* SUBTLE LOGIN */}
+              <button 
+                onClick={() => setAuthModalOpen(true)} 
+                className="text-gray-600 hover:text-purple-600 transition text-sm flex items-center gap-1"
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </button>        
               <button onClick={() => setContactModalOpen(true)} className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition font-semibold shadow-lg hover:shadow-xl">
+                Contact
+              </button>
+            </div>
+            {/* MOBILE NAV */}
+            <div className="md:hidden flex gap-3 items-center">
+              <button 
+                onClick={() => setAuthModalOpen(true)} 
+                className="text-gray-600 hover:text-purple-600 transition"
+              >
+                <LogIn className="w-5 h-5" />
+              </button>
+              <button onClick={() => setContactModalOpen(true)} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-semibold">
                 Contact
               </button>
             </div>
@@ -106,6 +126,19 @@ export default function AppLayout() {
                 <span className="text-gray-600">Created by published author</span>
               </div>
             </div>
+
+            {/* LOGIN REMINDER FOR BETA USERS */}
+            <div className="mt-8">
+              <p className="text-sm text-gray-500">
+                Author Club member or beta tester?{' '}
+                <button 
+                  onClick={() => setAuthModalOpen(true)}
+                  className="text-purple-600 hover:text-purple-700 font-medium underline"
+                >
+                  Log in here
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -161,7 +194,7 @@ export default function AppLayout() {
         </div>
       </section>
 
-      {/* Features - NOW 4 CARDS! */}
+      {/* Features - 4 CARDS! */}
       <section id="features" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-16">
@@ -220,7 +253,6 @@ export default function AppLayout() {
 
             {/* HOMEWORK HELPER - HIGHLIGHTED! */}
             <div className="group p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-300 hover:border-green-400 transition-all hover:shadow-xl relative">
-              {/* POPULAR BADGE */}
               <div className="absolute -top-3 -right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                 PARENTS LOVE THIS
               </div>
@@ -423,6 +455,7 @@ export default function AppLayout() {
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li><button onClick={() => scrollToSection('about')} className="hover:text-white transition">About Brandon</button></li>
                 <li><button onClick={() => setContactModalOpen(true)} className="hover:text-white transition">Contact</button></li>
+                <li><button onClick={() => setAuthModalOpen(true)} className="hover:text-white transition">Login</button></li>
               </ul>
             </div>
             <div>
