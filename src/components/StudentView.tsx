@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { StudentDashboard } from '@/components/StudentDashboard';
 import { BookCreator } from '@/components/BookCreator';
 import { AITutor } from '@/components/AITutor';
-import { BookService } from '@/services/bookservice';
-import { useAuth } from '@/contexts/AuthContext'; // Your auth context
+import { BookService } from '@/services/bookService'; // ← Fixed: capital S
+import { useAuth } from '@/contexts/AuthContext';
 
 export const StudentView = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [books, setBooks] = useState([]);
   const [currentBook, setCurrentBook] = useState(null);
-  const { user } = useAuth(); // Get current user
+  const { user } = useAuth();
   
   const studentProfile = {
     id: user?.id,

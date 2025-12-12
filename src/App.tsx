@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import PaymentSuccess from './pages/PaymentSuccess'
@@ -25,51 +26,53 @@ import { StudentView } from '@/components/StudentView'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={<DashboardRouter />} />
-      <Route path="/student-dashboard" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <StudentView />
-        </ProtectedRoute>
-      } />
-      <Route path="/teacher-dashboard" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <TeacherDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/parent-dashboard" element={
-        <ProtectedRoute allowedRoles={['parent']}>
-          <ParentDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <Admin />
-        </ProtectedRoute>
-      } />
-      <Route path="/settings" element={
-        <ProtectedRoute>
-          <AccountSettings />
-        </ProtectedRoute>
-      } />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/terms-of-service" element={<TermsOfService />} />
-      <Route path="/cookie-policy" element={<CookiePolicy />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/features" element={<Features />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/for-teachers" element={<ForTeachers />} />
-      <Route path="/for-students" element={<ForStudents />} />
-      <Route path="/careers" element={<ComingSoon />} />
-      <Route path="/blog" element={<ComingSoon />} />
-      <Route path="/payment-success" element={<PaymentSuccess />} />
-      <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<DashboardRouter />} />
+        <Route path="/student-dashboard" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <StudentView />
+          </ProtectedRoute>
+        } />
+        <Route path="/teacher-dashboard" element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/parent-dashboard" element={
+          <ProtectedRoute allowedRoles={['parent']}>
+            <ParentDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <Admin />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <AccountSettings />
+          </ProtectedRoute>
+        } />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/for-teachers" element={<ForTeachers />} />
+        <Route path="/for-students" element={<ForStudents />} />
+        <Route path="/careers" element={<ComingSoon />} />
+        <Route path="/blog" element={<ComingSoon />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AuthProvider>
   )
 }
 

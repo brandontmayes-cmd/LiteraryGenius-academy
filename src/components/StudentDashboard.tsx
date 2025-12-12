@@ -10,12 +10,22 @@ import {
   Eye,
   TrendingUp,
   Award,
-  Zap
+  Zap,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookViewer } from '@/components/BookViewer';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface StudentDashboardProps {
   studentName?: string;
@@ -30,6 +40,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   draftBooks = [],
   onNavigate
 }) => {
+  const { user, signOut } = useAuth();
   const [selectedBook, setSelectedBook] = useState<any>(null);
 
   const handleNavigate = (view: string) => {
@@ -37,6 +48,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       onNavigate(view);
     }
   };
+
+  // Use auth user name if available
+  const displayName = user?.user_metadata?.name || user?.firstName || studentName;
+  const userEmail = user?.email;
 
   const totalBooks = publishedBooks.length + draftBooks.length;
   const totalPages = publishedBooks.reduce((sum, book) => sum + (book.pages?.length || 0), 0);
@@ -63,25 +78,46 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             </div>
 
-            {/* User Menu */}
+            {/* User Menu with Logout */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">
-                Hello, <span className="text-purple-600">{studentName}</span>! 👋
+              <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                Hello, <span className="text-purple-600">{displayName}</span>! 👋
               </span>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="rounded-full hover:bg-purple-100"
-              >
-                <User className="w-5 h-5 text-gray-600" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="rounded-full hover:bg-purple-100"
-              >
-                <Settings className="w-5 h-5 text-gray-600" />
-              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="rounded-full hover:bg-purple-100"
+                  >
+                    <User className="w-5 h-5 text-gray-600" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{displayName}</p>
+                      {userEmail && (
+                        <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
+                      )}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={signOut}
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -295,12 +331,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <div 
                     key={book.id} 
                     className="group cursor-pointer"
-                      onClick={() => {
-    console.log('Clicked book:', book);
-    alert('Book clicked: ' + book.title);
-    setSelectedBook(book);
-  }}
->
+                    onClick={() => setSelectedBook(book)}
+                  >
                     <div className="aspect-[3/4] bg-gradient-to-br from-purple-200 via-pink-200 to-rose-200 rounded-lg mb-3 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all overflow-hidden relative">
                       {book.cover_image ? (
                         <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />

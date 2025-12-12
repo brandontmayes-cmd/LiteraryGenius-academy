@@ -1,7 +1,12 @@
+// src/lib/supabase.ts
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables')
+}
 
 // Create Supabase client with enhanced configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -105,6 +110,10 @@ export interface Book {
   genre?: string
   cover_image?: string
   status: 'draft' | 'published'
+  is_public?: boolean
+  is_featured?: boolean
+  view_count?: number
+  like_count?: number
   created_at: string
   updated_at: string
   published_at?: string
@@ -120,6 +129,8 @@ export interface BookPage {
   created_at: string
   updated_at: string
 }
+
+// Service role client for server-side operations (admin functions)
 export const supabaseFunctions = createClient(
   supabaseUrl, 
   import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '',

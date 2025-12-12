@@ -6,6 +6,7 @@ interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+  signOut: () => Promise<void>; // ← Added this for compatibility
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
@@ -14,9 +15,6 @@ interface AuthContextType extends AuthState {
   trackSession: (deviceInfo: any) => Promise<void>;
   pendingVerification: boolean;
 }
-
-
-
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -72,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [pendingEmail, setPendingEmail] = React.useState<string | null>(null);
-
 
   useEffect(() => {
     // Check active session on mount
@@ -139,8 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
-
   const createOAuthProfile = async (userId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -165,8 +160,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'LOGIN_ERROR', payload: error.message });
     }
   };
-
-
 
   const login = async (credentials: LoginCredentials) => {
     dispatch({ type: 'LOGIN_START' });
@@ -247,9 +240,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
-
-
   const resendVerificationEmail = async () => {
     if (!pendingEmail) return;
     
@@ -274,11 +264,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
   const logout = async () => {
     await supabase.auth.signOut();
     dispatch({ type: 'LOGOUT' });
+    window.location.href = '/';
   };
+
+  // Alias for logout (for compatibility with new components)
+  const signOut = logout;
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -318,7 +311,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
-
 
   const trackSession = async (deviceInfo: any) => {
     try {
@@ -371,9 +363,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updatedUser = { ...state.user, ...updates };
       dispatch({ type: 'UPDATE_USER', payload: updatedUser });
     }
-  }
-
-
+  };
 
   return (
     <AuthContext.Provider value={{
@@ -381,6 +371,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      signOut, // ← Added this alias
       resetPassword,
       updateProfile,
       resendVerificationEmail,
@@ -392,7 +383,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-
 }
 
 export const useAuth = () => {

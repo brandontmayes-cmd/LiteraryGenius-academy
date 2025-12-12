@@ -1,4 +1,7 @@
-// Mock BookService (no database) - for testing
+// src/services/bookService.ts
+// Real database implementation using Supabase
+
+import { supabase } from '@/lib/supabase';
 
 export interface Book {
   id: string;
@@ -8,6 +11,10 @@ export interface Book {
   genre?: string;
   cover_image?: string;
   status: 'draft' | 'published';
+  is_public?: boolean;
+  is_featured?: boolean;
+  view_count?: number;
+  like_count?: number;
   created_at?: string;
   updated_at?: string;
   published_at?: string;
@@ -24,46 +31,68 @@ export interface BookPage {
   updated_at?: string;
 }
 
-// Generate UUID-like IDs
-function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
-// Simple in-memory storage (resets on page refresh)
-let mockBooks: Book[] = [];
-
 export class BookService {
   
   // Save or update a book
   static async saveBook(bookData: any, studentId: string): Promise<{ success: boolean; bookId?: string; error?: string }> {
     try {
-      const book: Book = {
-        id: bookData.id || generateId(),  // ← Fixed!
+      const bookPayload = {
         student_id: studentId,
-        title: bookData.title,
-        author: bookData.author,
+        title: bookData.title || 'Untitled Book',
+        author: bookData.author || 'Unknown Author',
         genre: bookData.genre,
         cover_image: bookData.coverImage,
-        status: 'draft',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        pages: bookData.pages || []
+        status: 'draft' as const,
       };
 
-      // Update existing or add new
-      const existingIndex = mockBooks.findIndex(b => b.id === book.id);
-      if (existingIndex >= 0) {
-        mockBooks[existingIndex] = book;
+      let bookId = bookData.id;
+
+      if (bookId) {
+        // Update existing book
+        const { error: bookError } = await supabase
+          .from('books')
+          .update(bookPayload)
+          .eq('id', bookId)
+          .eq('student_id', studentId);
+
+        if (bookError) throw bookError;
+
+        // Delete existing pages
+        await supabase
+          .from('pages')
+          .delete()
+          .eq('book_id', bookId);
+
       } else {
-        mockBooks.push(book);
+        // Insert new book
+        const { data: newBook, error: bookError } = await supabase
+          .from('books')
+          .insert(bookPayload)
+          .select()
+          .single();
+
+        if (bookError) throw bookError;
+        bookId = newBook.id;
       }
 
-      console.log('✅ Book saved (in-memory):', book);
-      return { success: true, bookId: book.id };
+      // Insert pages
+      if (bookData.pages && bookData.pages.length > 0) {
+        const pagesPayload = bookData.pages.map((page: any, index: number) => ({
+          book_id: bookId,
+          page_number: page.pageNumber || index + 1,
+          text: page.text,
+          image_url: page.imageUrl,
+        }));
+
+        const { error: pagesError } = await supabase
+          .from('pages')
+          .insert(pagesPayload);
+
+        if (pagesError) throw pagesError;
+      }
+
+      console.log('✅ Book saved to database:', bookId);
+      return { success: true, bookId };
 
     } catch (error: any) {
       console.error('❌ Error saving book:', error);
@@ -74,18 +103,23 @@ export class BookService {
   // Publish a book
   static async publishBook(bookData: any, studentId: string): Promise<{ success: boolean; bookId?: string; error?: string }> {
     try {
-      // First save it
+      // First save the book as draft
       const saveResult = await this.saveBook(bookData, studentId);
       if (!saveResult.success) return saveResult;
 
-      // Then mark as published
-      const book = mockBooks.find(b => b.id === saveResult.bookId);
-      if (book) {
-        book.status = 'published';
-        book.published_at = new Date().toISOString();
-      }
+      // Then update to published
+      const { error } = await supabase
+        .from('books')
+        .update({
+          status: 'published',
+          published_at: new Date().toISOString(),
+        })
+        .eq('id', saveResult.bookId)
+        .eq('student_id', studentId);
 
-      console.log('✅ Book published (in-memory):', book);
+      if (error) throw error;
+
+      console.log('✅ Book published to database:', saveResult.bookId);
       return { success: true, bookId: saveResult.bookId };
 
     } catch (error: any) {
@@ -97,9 +131,19 @@ export class BookService {
   // Get all books for a student
   static async getStudentBooks(studentId: string): Promise<Book[]> {
     try {
-      const books = mockBooks.filter(b => b.student_id === studentId);
-      console.log('📚 Loaded books (in-memory):', books);
-      return books;
+      const { data: books, error: booksError } = await supabase
+        .from('books')
+        .select(`
+          *,
+          pages (*)
+        `)
+        .eq('student_id', studentId)
+        .order('updated_at', { ascending: false });
+
+      if (booksError) throw booksError;
+
+      console.log('📚 Loaded books from database:', books?.length || 0);
+      return books || [];
 
     } catch (error: any) {
       console.error('❌ Error fetching books:', error);
@@ -110,8 +154,18 @@ export class BookService {
   // Get a specific book
   static async getBook(bookId: string): Promise<Book | null> {
     try {
-      const book = mockBooks.find(b => b.id === bookId);
-      return book || null;
+      const { data: book, error } = await supabase
+        .from('books')
+        .select(`
+          *,
+          pages (*)
+        `)
+        .eq('id', bookId)
+        .single();
+
+      if (error) throw error;
+
+      return book;
 
     } catch (error: any) {
       console.error('❌ Error fetching book:', error);
@@ -120,10 +174,17 @@ export class BookService {
   }
 
   // Delete a book
-  static async deleteBook(bookId: string): Promise<{ success: boolean; error?: string }> {
+  static async deleteBook(bookId: string, studentId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      mockBooks = mockBooks.filter(b => b.id !== bookId);
-      console.log('✅ Book deleted (in-memory)');
+      const { error } = await supabase
+        .from('books')
+        .delete()
+        .eq('id', bookId)
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+
+      console.log('✅ Book deleted from database');
       return { success: true };
 
     } catch (error: any) {
