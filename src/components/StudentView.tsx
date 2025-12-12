@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StudentDashboard } from '@/components/StudentDashboard';
 import { BookCreator } from '@/components/BookCreator';
 import { AITutor } from '@/components/AITutor';
-import { BookService } from '@/services/bookService'; // ← Fixed: capital S
+import { BookService } from '@/services/bookService'; // ← CAPITAL S - FIXED!
 import { useAuth } from '@/contexts/AuthContext';
 
 export const StudentView = () => {
