@@ -349,7 +349,7 @@ export const AITutor: React.FC<AITutorProps> = ({
     <Card className="h-[600px] flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
-          <Bot className="w-5 h-5 text-blue-500" />
+          <Bot className="w-5 h-5 text-[#ffd700]" />
           AI Tutor - {subject}
           <Badge variant="secondary" className="ml-auto">
             <Target className="w-3 h-3 mr-1" />
@@ -364,7 +364,7 @@ export const AITutor: React.FC<AITutorProps> = ({
             {messages.map((message) => (
               <div key={message.id} className="flex gap-3">
                 <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  message.sender === 'ai' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                  message.sender === 'ai' ? 'bg-[#ffd700]/20 text-[#1a2744]' : 'bg-gray-100 text-gray-600'
                 }`}>
                   {message.sender === 'ai' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                 </div>
@@ -372,7 +372,7 @@ export const AITutor: React.FC<AITutorProps> = ({
                 <div className="flex-1 space-y-2">
                   <div className={`p-3 rounded-lg max-w-[80%] ${
                     message.sender === 'ai' 
-                      ? 'bg-blue-50 text-blue-900 border border-blue-200' 
+                      ? 'bg-[#ffd700]/10 text-[#1a2744] border border-[#ffd700]/30' 
                       : 'bg-gray-50 text-gray-900 border border-gray-200 ml-auto'
                   }`}>
                     {message.imageUrl && (
@@ -434,18 +434,18 @@ export const AITutor: React.FC<AITutorProps> = ({
             
             {isLoading && (
               <div className="flex gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#ffd700]/20 text-[#1a2744] flex items-center justify-center">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="flex-1">
-                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg max-w-[80%]">
+                  <div className="bg-[#ffd700]/10 border border-[#ffd700]/30 p-3 rounded-lg max-w-[80%]">
                     <div className="flex items-center gap-2">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                       </div>
-                      <span className="text-sm text-blue-600">AI is thinking...</span>
+                      <span className="text-sm text-[#1a2744]">AI is thinking...</span>
                     </div>
                   </div>
                 </div>

@@ -71,11 +71,11 @@ export const StudentView = () => {
       )}
 
       {currentView === 'create' && (
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white border-b p-4">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="bg-[#1a2744] border-b border-[#ffd700]/20 p-4">
             <button
               onClick={() => setCurrentView('dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+              className="text-[#ffd700] hover:text-[#ffd700]/80 flex items-center gap-2 font-medium"
             >
               ← Back to Dashboard
             </button>
@@ -93,11 +93,11 @@ export const StudentView = () => {
       )}
 
       {currentView === 'coach' && (
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white border-b p-4">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="bg-[#1a2744] border-b border-[#ffd700]/20 p-4">
             <button
               onClick={() => setCurrentView('dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+              className="text-[#ffd700] hover:text-[#ffd700]/80 flex items-center gap-2 font-medium"
             >
               ← Back to Dashboard
             </button>
@@ -114,11 +114,11 @@ export const StudentView = () => {
       )}
 
       {currentView === 'homework' && (
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white border-b p-4">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="bg-[#1a2744] border-b border-[#ffd700]/20 p-4">
             <button
               onClick={() => setCurrentView('dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+              className="text-[#ffd700] hover:text-[#ffd700]/80 flex items-center gap-2 font-medium"
             >
               ← Back to Dashboard
             </button>

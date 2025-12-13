@@ -257,7 +257,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-purple-500" />
+                  <Sparkles className="w-6 h-6 text-[#ffd700]" />
                   Welcome to Book Creator!
                 </CardTitle>
                 <Button 
@@ -270,27 +270,27 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="bg-[#ffd700]/10 p-4 rounded-lg">
                 <h3 className="font-semibold text-lg mb-2">🎨 How to Create Your Book:</h3>
                 <ol className="space-y-2 text-sm">
                   <li className="flex items-start gap-2">
-                    <span className="font-bold text-purple-600">1.</span>
+                    <span className="font-bold text-[#ffd700]">1.</span>
                     <span><strong>Add Your Book Info:</strong> Give your book a title and pick a genre</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-bold text-purple-600">2.</span>
+                    <span className="font-bold text-[#ffd700]">2.</span>
                     <span><strong>Write Your Story:</strong> Type your story page by page (or use writing prompts for ideas!)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-bold text-purple-600">3.</span>
+                    <span className="font-bold text-[#ffd700]">3.</span>
                     <span><strong>Add Pictures:</strong> Upload photos of your drawings or other images</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-bold text-purple-600">4.</span>
+                    <span className="font-bold text-[#ffd700]">4.</span>
                     <span><strong>Preview:</strong> See how your book looks before publishing</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-bold text-purple-600">5.</span>
+                    <span className="font-bold text-[#ffd700]">5.</span>
                     <span><strong>Publish:</strong> Click publish and become a real author! 🎉</span>
                   </li>
                 </ol>
@@ -310,7 +310,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
               </div>
 
               <Button 
-                className="w-full bg-purple-500 hover:bg-purple-600"
+                className="w-full bg-[#ffd700] hover:bg-[#e6c200]"
                 onClick={() => setShowOnboarding(false)}
               >
                 Start Creating! 📚
@@ -352,7 +352,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
                         <button
                           key={index}
                           onClick={() => usePrompt(prompt)}
-                          className="w-full text-left p-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-colors border border-gray-200 hover:border-purple-300"
+                          className="w-full text-left p-3 bg-gray-50 hover:bg-[#ffd700]/10 rounded-lg transition-colors border border-gray-200 hover:border-[#ffd700]/50"
                         >
                           <p className="text-sm">{prompt}</p>
                         </button>
@@ -371,7 +371,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-purple-500" />
+              <BookOpen className="w-5 h-5 text-[#ffd700]" />
               <CardTitle>Book Creator</CardTitle>
               <Badge variant={book.status === 'published' ? 'default' : 'secondary'}>
                 {book.status === 'published' ? '✨ Published' : '📝 Draft'}
@@ -394,7 +394,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
                 <Save className="w-4 h-4 mr-1" />
                 Save
               </Button>
-              <Button size="sm" onClick={publishBook} className="bg-purple-500 hover:bg-purple-600">
+              <Button size="sm" onClick={publishBook} className="bg-[#ffd700] hover:bg-[#e6c200]">
                 <Sparkles className="w-4 h-4 mr-1" />
                 Publish
               </Button>
@@ -433,7 +433,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
               <select
                 value={book.genre || ''}
                 onChange={(e) => setBook({ ...book, genre: e.target.value })}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ffd700]"
               >
                 <option value="">Choose a genre...</option>
                 <option value="fantasy">Fantasy</option>
@@ -604,10 +604,6 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
           pageText={currentPage.text}
           gradeLevel={studentProfile?.grade_level || 4}
           onClose={() => setShowWritingAssistant(false)}
-          currentPageNumber={currentPage.pageNumber}
-          allPages={book.pages.map(p => ({ pageNumber: p.pageNumber, text: p.text }))}
-          bookTitle={book.title}
-          bookGenre={book.genre}
         />
       )}
     </div>

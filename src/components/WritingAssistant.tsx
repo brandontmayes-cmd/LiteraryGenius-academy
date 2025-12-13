@@ -174,7 +174,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-500" />
+                <Sparkles className="w-5 h-5 text-[#ffd700]" />
                 Writing Coach
               </CardTitle>
               {bookTitle !== 'Untitled' && (
@@ -193,7 +193,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
           {/* Loading State */}
           {loading && (
             <div className="flex-1 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-4" />
+              <Loader2 className="w-8 h-8 text-[#ffd700] animate-spin mb-4" />
               <p className="text-sm text-gray-600">Reading your story...</p>
             </div>
           )}
@@ -201,8 +201,8 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
           {/* Empty State */}
           {!loading && !currentFeedback && pageText.trim().length === 0 && (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <div className="bg-purple-100 p-4 rounded-full mb-4">
-                <Sparkles className="w-8 h-8 text-purple-500" />
+              <div className="bg-[#ffd700]/20 p-4 rounded-full mb-4">
+                <Sparkles className="w-8 h-8 text-[#ffd700]" />
               </div>
               <h3 className="font-semibold text-lg mb-2">Write something first!</h3>
               <p className="text-sm text-gray-600 mb-6 max-w-md">
@@ -228,7 +228,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
                           key={index}
                           className={`p-3 rounded-lg text-sm ${
                             msg.role === 'assistant' 
-                              ? 'bg-purple-50 border border-purple-200' 
+                              ? 'bg-[#ffd700]/10 border border-[#ffd700]/30' 
                               : 'bg-gray-50 border border-gray-200'
                           }`}
                         >
@@ -245,7 +245,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
                   )}
 
                   {/* Current feedback */}
-                  <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
+                  <div className="bg-[#ffd700]/10 p-4 rounded-lg border-2 border-[#ffd700]/30">
                     <div className="prose prose-sm max-w-none">
                       <div className="whitespace-pre-wrap">{currentFeedback}</div>
                     </div>
@@ -326,7 +326,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
                             setCustomQuestion(question);
                             setShowQuestionInput(true);
                           }}
-                          className="block w-full text-left text-xs text-gray-600 hover:text-purple-600 hover:bg-white p-2 rounded transition-colors"
+                          className="block w-full text-left text-xs text-gray-600 hover:text-[#ffd700] hover:bg-white p-2 rounded transition-colors"
                         >
                           → {question}
                         </button>
