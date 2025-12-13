@@ -332,7 +332,6 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
                       ))}
                     </div>
                   </div>
-                </div>
               </div>
 
               {/* Bottom Actions - Sticky */}
