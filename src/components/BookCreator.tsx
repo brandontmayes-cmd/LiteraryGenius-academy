@@ -604,6 +604,10 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
           pageText={currentPage.text}
           gradeLevel={studentProfile?.grade_level || 4}
           onClose={() => setShowWritingAssistant(false)}
+          currentPageNumber={currentPage.pageNumber}
+          allPages={book.pages.map(p => ({ pageNumber: p.pageNumber, text: p.text }))}
+          bookTitle={book.title}
+          bookGenre={book.genre}
         />
       )}
     </div>

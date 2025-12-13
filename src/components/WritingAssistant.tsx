@@ -168,9 +168,9 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <CardHeader className="pb-3 border-b">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <Card className="w-full max-w-2xl my-8 flex flex-col max-h-[calc(100vh-4rem)]">
+        <CardHeader className="pb-3 border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -189,7 +189,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-hidden flex flex-col pt-4">
+        <CardContent className="flex-1 overflow-y-auto flex flex-col pt-4 min-h-0">
           {/* Loading State */}
           {loading && (
             <div className="flex-1 flex flex-col items-center justify-center">
@@ -218,36 +218,35 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
           {/* Feedback Display */}
           {!loading && currentFeedback && (
             <>
-              <ScrollArea className="flex-1 pr-4">
-                <div className="space-y-4">
-                  {/* Show conversation history */}
-                  {conversationHistory.length > 2 && (
-                    <div className="space-y-3">
-                      {conversationHistory.slice(0, -2).map((msg, index) => (
-                        <div 
-                          key={index}
-                          className={`p-3 rounded-lg text-sm ${
-                            msg.role === 'assistant' 
-                              ? 'bg-[#ffd700]/10 border border-[#ffd700]/30' 
-                              : 'bg-gray-50 border border-gray-200'
-                          }`}
-                        >
-                          <div className="font-medium text-xs mb-1 text-gray-600">
-                            {msg.role === 'assistant' ? '🎨 Coach:' : '✏️ You asked:'}
-                          </div>
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div className="space-y-4 pb-4">
+                {/* Show conversation history */}
+                {conversationHistory.length > 2 && (
+                  <div className="space-y-3">
+                    {conversationHistory.slice(0, -2).map((msg, index) => (
+                      <div 
+                        key={index}
+                        className={`p-3 rounded-lg text-sm ${
+                          msg.role === 'assistant' 
+                            ? 'bg-[#ffd700]/10 border border-[#ffd700]/30' 
+                            : 'bg-gray-50 border border-gray-200'
+                        }`}
+                      >
+                        <div className="font-medium text-xs mb-1 text-gray-600">
+                          {msg.role === 'assistant' ? '🎨 Coach:' : '✏️ You asked:'}
                         </div>
-                      ))}
-                      <div className="border-t pt-3 mb-3">
-                        <p className="text-xs text-gray-500 text-center">Latest Response:</p>
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
                       </div>
+                    ))}
+                    <div className="border-t pt-3 mb-3">
+                      <p className="text-xs text-gray-500 text-center">Latest Response:</p>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Current feedback */}
-                  <div className="bg-[#ffd700]/10 p-4 rounded-lg border-2 border-[#ffd700]/30">
-                    <div className="prose prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap">{currentFeedback}</div>
+                {/* Current feedback */}
+                <div className="bg-[#ffd700]/10 p-4 rounded-lg border-2 border-[#ffd700]/30">
+                  <div className="prose prose-sm max-w-none">
+                    <div className="whitespace-pre-wrap">{currentFeedback}</div>
                     </div>
                   </div>
 
@@ -334,10 +333,10 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
                     </div>
                   </div>
                 </div>
-              </ScrollArea>
+              </div>
 
-              {/* Bottom Actions */}
-              <div className="border-t pt-4 mt-4">
+              {/* Bottom Actions - Sticky */}
+              <div className="border-t pt-4 mt-4 flex-shrink-0 sticky bottom-0 bg-white">
                 <Button onClick={onClose} className="w-full">
                   <ThumbsUp className="w-4 h-4 mr-2" />
                   Got it! Back to Writing
