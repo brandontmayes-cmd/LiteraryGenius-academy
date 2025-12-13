@@ -74,13 +74,14 @@ export const BookService = {
         updated_at: new Date().toISOString()
       };
 
-      // Add ID if updating existing book
-      if (book.id) {
+      // Only add ID if it's a valid UUID, otherwise let Supabase generate it
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (book.id && uuidRegex.test(book.id)) {
         bookData.id = book.id;
         console.log('💾 [BookService] Updating existing book, ID:', book.id);
       } else {
         bookData.created_at = new Date().toISOString();
-        console.log('💾 [BookService] Creating new book (no ID)');
+        console.log('💾 [BookService] Creating new book (no valid UUID, Supabase will generate)');
       }
 
       console.log('💾 [BookService] Prepared data:', JSON.stringify(bookData, null, 2));
@@ -170,12 +171,14 @@ export const BookService = {
         published_at: new Date().toISOString()
       };
 
-      if (book.id) {
+      // Only add ID if it's a valid UUID, otherwise let Supabase generate it
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (book.id && uuidRegex.test(book.id)) {
         bookData.id = book.id;
         console.log('🎉 [BookService] Publishing existing book, ID:', book.id);
       } else {
         bookData.created_at = new Date().toISOString();
-        console.log('🎉 [BookService] Publishing new book (no ID)');
+        console.log('🎉 [BookService] Publishing new book (no valid UUID, Supabase will generate)');
       }
 
       console.log('🎉 [BookService] Prepared data:', JSON.stringify(bookData, null, 2));
