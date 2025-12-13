@@ -5,18 +5,37 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 
+interface BookPage {
+  pageNumber: number;
+  text: string;
+}
+
 interface WritingAssistantProps {
   pageText: string;
   gradeLevel: number;
   onClose: () => void;
+  currentPageNumber?: number;
+  allPages?: BookPage[];
+  bookTitle?: string;
+  bookGenre?: string;
+}
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export const WritingAssistant: React.FC<WritingAssistantProps> = ({
   pageText,
   gradeLevel,
-  onClose
+  onClose,
+  currentPageNumber = 1,
+  allPages = [],
+  bookTitle = 'Untitled',
+  bookGenre
 }) => {
-  const [feedback, setFeedback] = useState<string>('');
+  const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
+  const [currentFeedback, setCurrentFeedback] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [customQuestion, setCustomQuestion] = useState('');
   const [showQuestionInput, setShowQuestionInput] = useState(false);
@@ -29,7 +48,27 @@ export const WritingAssistant: React.FC<WritingAssistantProps> = ({
       // Determine age range based on grade
       const ageRange = gradeLevel === 3 ? '8-9' : gradeLevel === 4 ? '9-10' : '10-11';
       
-      const systemMessage = `You are a friendly writing coach for a ${gradeLevel}th grade student (ages ${ageRange}). 
+      // Build context about the entire book
+      const bookContext = `
+BOOK INFORMATION:
+- Title: "${bookTitle}"
+${bookGenre ? `- Genre: ${bookGenre}` : ''}
+- Total Pages: ${allPages.length}
+- Current Page: ${currentPageNumber}
+
+ALL PAGES IN THE BOOK:
+${allPages.map(page => `
+Page ${page.pageNumber}:
+${page.text || '(empty)'}
+`).join('\n---\n')}
+
+CURRENT PAGE (Page ${currentPageNumber}):
+"""
+${pageText || '(Empty page - they haven\'t written anything yet)'}
+"""
+`;
+
+      const systemPrompt = `You are a friendly writing coach for a ${gradeLevel}th grade student (ages ${ageRange}). 
 
 Your job is to help them improve their creative writing in an encouraging, age-appropriate way.
 
@@ -43,18 +82,35 @@ RULES:
 7. Be enthusiastic but not patronizing
 8. Encourage their creativity - never say their ideas are wrong
 9. If they ask for help with plot, ask guiding questions rather than giving answers
+10. When you can see previous pages, help with story continuity and flow
+11. Notice if they're introducing new characters or plot points and help them connect to earlier pages
 
 GRADE-SPECIFIC FOCUS:
 ${gradeLevel === 3 ? '- Focus on: Sensory details, simple sentence variety, spelling help, describing feelings' :
   gradeLevel === 4 ? '- Focus on: Dialogue punctuation, paragraph breaks, character feelings, stronger verbs' :
   '- Focus on: Plot development, character motivation, showing vs telling, pacing'}
 
-Current page they're working on:
-"""
-${pageText || '(Empty page - they haven\'t written anything yet)'}
-"""
+${bookContext}
 
-${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpful, encouraging suggestions to improve this page.'}`;
+${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpful, encouraging suggestions to improve page ${currentPageNumber}. You can reference earlier pages to help with continuity.`}`;
+
+      // Build the messages array for the API
+      const messages: any[] = [];
+      
+      // Add conversation history
+      conversationHistory.forEach(msg => {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      });
+
+      // Add the new user message
+      const userMessage = customPrompt || `Help me improve page ${currentPageNumber}`;
+      messages.push({
+        role: 'user',
+        content: `${systemPrompt}\n\nUser request: ${userMessage}`
+      });
 
       // Call the same API endpoint that AITutor uses
       const response = await fetch('/api/tutor', {
@@ -63,15 +119,10 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: 'user',
-              content: systemMessage
-            }
-          ],
+          messages: messages,
           subject: 'Writing',
           gradeLevel: gradeLevel.toString(),
-          context: 'Creative Writing Coach'
+          context: `Creative Writing Coach - ${bookGenre || 'Story'} Writing`
         })
       });
 
@@ -81,11 +132,20 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
       }
 
       const data = await response.json();
-      setFeedback(data.response);
+      const feedback = data.response;
+      
+      // Update conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { role: 'user', content: userMessage },
+        { role: 'assistant', content: feedback }
+      ]);
+      
+      setCurrentFeedback(feedback);
       
     } catch (error) {
       console.error('Error getting feedback:', error);
-      setFeedback('Oops! I had trouble connecting. Please try again!');
+      setCurrentFeedback('Oops! I had trouble connecting. Please try again!');
     } finally {
       setLoading(false);
     }
@@ -112,10 +172,17 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
       <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
         <CardHeader className="pb-3 border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              Writing Coach
-            </CardTitle>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                Writing Coach
+              </CardTitle>
+              {bookTitle !== 'Untitled' && (
+                <p className="text-xs text-gray-500 mt-1">
+                  "{bookTitle}" - Page {currentPageNumber} of {allPages.length}
+                </p>
+              )}
+            </div>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="w-5 h-5" />
             </Button>
@@ -132,7 +199,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
           )}
 
           {/* Empty State */}
-          {!loading && !feedback && pageText.trim().length === 0 && (
+          {!loading && !currentFeedback && pageText.trim().length === 0 && (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <div className="bg-purple-100 p-4 rounded-full mb-4">
                 <Sparkles className="w-8 h-8 text-purple-500" />
@@ -149,14 +216,38 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
           )}
 
           {/* Feedback Display */}
-          {!loading && feedback && (
+          {!loading && currentFeedback && (
             <>
               <ScrollArea className="flex-1 pr-4">
                 <div className="space-y-4">
-                  {/* Feedback content */}
-                  <div className="bg-purple-50 p-4 rounded-lg">
+                  {/* Show conversation history */}
+                  {conversationHistory.length > 2 && (
+                    <div className="space-y-3">
+                      {conversationHistory.slice(0, -2).map((msg, index) => (
+                        <div 
+                          key={index}
+                          className={`p-3 rounded-lg text-sm ${
+                            msg.role === 'assistant' 
+                              ? 'bg-purple-50 border border-purple-200' 
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}
+                        >
+                          <div className="font-medium text-xs mb-1 text-gray-600">
+                            {msg.role === 'assistant' ? '🎨 Coach:' : '✏️ You asked:'}
+                          </div>
+                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                        </div>
+                      ))}
+                      <div className="border-t pt-3 mb-3">
+                        <p className="text-xs text-gray-500 text-center">Latest Response:</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current feedback */}
+                  <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
                     <div className="prose prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap">{feedback}</div>
+                      <div className="whitespace-pre-wrap">{currentFeedback}</div>
                     </div>
                   </div>
 
@@ -189,7 +280,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
                       <Textarea
                         value={customQuestion}
                         onChange={(e) => setCustomQuestion(e.target.value)}
-                        placeholder="Example: How can I make my character more interesting? What should happen next?"
+                        placeholder="Example: How can I make my character more interesting? What should happen next? Does this connect well with page 2?"
                         className="resize-none"
                         rows={3}
                       />
@@ -226,6 +317,7 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpfu
                         "How can I describe this better?",
                         "What should happen next in my story?",
                         "How can I show my character's feelings?",
+                        "Does this page flow well with the rest of my story?",
                         "Is my dialogue written correctly?"
                       ].map((question, index) => (
                         <button
