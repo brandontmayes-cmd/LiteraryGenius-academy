@@ -56,19 +56,33 @@ ${pageText || '(Empty page - they haven\'t written anything yet)'}
 
 ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpful, encouraging suggestions to improve this page.'}`;
 
-      // Call your API endpoint
-      const response = await fetch('/api/ai/writing-help', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Call Anthropic API directly (same as AITutor does)
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          systemPrompt,
-          userMessage: customPrompt || 'Help me make this page better!',
-          pageText
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [
+            {
+              role: "user",
+              content: systemPrompt
+            }
+          ],
         })
       });
 
       const data = await response.json();
-      setFeedback(data.feedback);
+      
+      // Extract text from response
+      const feedbackText = data.content
+        .map((item: any) => (item.type === "text" ? item.text : ""))
+        .filter(Boolean)
+        .join("\n");
+      
+      setFeedback(feedbackText);
       
     } catch (error) {
       console.error('Error getting feedback:', error);
