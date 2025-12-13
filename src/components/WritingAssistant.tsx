@@ -29,7 +29,7 @@ export const WritingAssistant: React.FC<WritingAssistantProps> = ({
       // Determine age range based on grade
       const ageRange = gradeLevel === 3 ? '8-9' : gradeLevel === 4 ? '9-10' : '10-11';
       
-      const systemPrompt = `You are a friendly writing coach for a ${gradeLevel}th grade student (ages ${ageRange}). 
+      const systemMessage = `You are a friendly writing coach for a ${gradeLevel}th grade student (ages ${ageRange}). 
 
 Your job is to help them improve their creative writing in an encouraging, age-appropriate way.
 
@@ -56,33 +56,32 @@ ${pageText || '(Empty page - they haven\'t written anything yet)'}
 
 ${customPrompt ? `Student's question: "${customPrompt}"` : 'Give them 2-3 helpful, encouraging suggestions to improve this page.'}`;
 
-      // Call Anthropic API directly (same as AITutor does)
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
+      // Call the same API endpoint that AITutor uses
+      const response = await fetch('/api/tutor', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
           messages: [
             {
-              role: "user",
-              content: systemPrompt
+              role: 'user',
+              content: systemMessage
             }
           ],
+          subject: 'Writing',
+          gradeLevel: gradeLevel.toString(),
+          context: 'Creative Writing Coach'
         })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error: ${response.status}`);
+      }
+
       const data = await response.json();
-      
-      // Extract text from response
-      const feedbackText = data.content
-        .map((item: any) => (item.type === "text" ? item.text : ""))
-        .filter(Boolean)
-        .join("\n");
-      
-      setFeedback(feedbackText);
+      setFeedback(data.response);
       
     } catch (error) {
       console.error('Error getting feedback:', error);
