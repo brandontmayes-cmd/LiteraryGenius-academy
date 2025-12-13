@@ -1,195 +1,258 @@
-// src/services/bookService.ts
-// Real database implementation using Supabase
+// bookService.ts - DIAGNOSTIC VERSION
+// This will tell us exactly what's happening when you try to save
 
 import { supabase } from '@/lib/supabase';
 
-export interface Book {
-  id: string;
-  student_id?: string;
-  title: string;
-  author: string;
-  genre?: string;
-  cover_image?: string;
-  status: 'draft' | 'published';
-  is_public?: boolean;
-  is_featured?: boolean;
-  view_count?: number;
-  like_count?: number;
-  created_at?: string;
-  updated_at?: string;
-  published_at?: string;
-  pages?: BookPage[];
-}
-
-export interface BookPage {
-  id: string;
-  book_id?: string;
-  page_number: number;
-  text?: string;
-  image_url?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export class BookService {
-  
-  // Save or update a book
-  static async saveBook(bookData: any, studentId: string): Promise<{ success: boolean; bookId?: string; error?: string }> {
+export const BookService = {
+  /**
+   * Get all books for a student
+   */
+  async getStudentBooks(userId: string) {
+    console.log('📚 [BookService] getStudentBooks called');
+    console.log('📚 [BookService] User ID:', userId);
+    
     try {
-      const bookPayload = {
-        student_id: studentId,
-        title: bookData.title || 'Untitled Book',
-        author: bookData.author || 'Unknown Author',
-        genre: bookData.genre,
-        cover_image: bookData.coverImage,
-        status: 'draft' as const,
-      };
-
-      let bookId = bookData.id;
-
-      if (bookId) {
-        // Update existing book
-        const { error: bookError } = await supabase
-          .from('books')
-          .update(bookPayload)
-          .eq('id', bookId)
-          .eq('student_id', studentId);
-
-        if (bookError) throw bookError;
-
-        // Delete existing pages
-        await supabase
-          .from('pages')
-          .delete()
-          .eq('book_id', bookId);
-
-      } else {
-        // Insert new book
-        const { data: newBook, error: bookError } = await supabase
-          .from('books')
-          .insert(bookPayload)
-          .select()
-          .single();
-
-        if (bookError) throw bookError;
-        bookId = newBook.id;
-      }
-
-      // Insert pages
-      if (bookData.pages && bookData.pages.length > 0) {
-        const pagesPayload = bookData.pages.map((page: any, index: number) => ({
-          book_id: bookId,
-          page_number: page.pageNumber || index + 1,
-          text: page.text,
-          image_url: page.imageUrl,
-        }));
-
-        const { error: pagesError } = await supabase
-          .from('pages')
-          .insert(pagesPayload);
-
-        if (pagesError) throw pagesError;
-      }
-
-      console.log('✅ Book saved to database:', bookId);
-      return { success: true, bookId };
-
-    } catch (error: any) {
-      console.error('❌ Error saving book:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Publish a book
-  static async publishBook(bookData: any, studentId: string): Promise<{ success: boolean; bookId?: string; error?: string }> {
-    try {
-      // First save the book as draft
-      const saveResult = await this.saveBook(bookData, studentId);
-      if (!saveResult.success) return saveResult;
-
-      // Then update to published
-      const { error } = await supabase
+      console.log('📚 [BookService] Querying Supabase...');
+      
+      const { data, error } = await supabase
         .from('books')
-        .update({
-          status: 'published',
-          published_at: new Date().toISOString(),
-        })
-        .eq('id', saveResult.bookId)
-        .eq('student_id', studentId);
-
-      if (error) throw error;
-
-      console.log('✅ Book published to database:', saveResult.bookId);
-      return { success: true, bookId: saveResult.bookId };
-
-    } catch (error: any) {
-      console.error('❌ Error publishing book:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Get all books for a student
-  static async getStudentBooks(studentId: string): Promise<Book[]> {
-    try {
-      const { data: books, error: booksError } = await supabase
-        .from('books')
-        .select(`
-          *,
-          pages (*)
-        `)
-        .eq('student_id', studentId)
+        .select('*')
+        .eq('user_id', userId)
         .order('updated_at', { ascending: false });
-
-      if (booksError) throw booksError;
-
-      console.log('📚 Loaded books from database:', books?.length || 0);
-      return books || [];
-
+      
+      if (error) {
+        console.error('❌ [BookService] Supabase error:', error);
+        console.error('❌ [BookService] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return [];
+      }
+      
+      console.log('✅ [BookService] Books loaded:', data?.length || 0);
+      console.log('✅ [BookService] Books data:', data);
+      return data || [];
+      
     } catch (error: any) {
-      console.error('❌ Error fetching books:', error);
+      console.error('❌ [BookService] Unexpected error:', error);
+      console.error('❌ [BookService] Error stack:', error.stack);
       return [];
     }
-  }
+  },
 
-  // Get a specific book
-  static async getBook(bookId: string): Promise<Book | null> {
+  /**
+   * Save a book (draft)
+   */
+  async saveBook(book: any, userId: string) {
+    console.log('💾 [BookService] ========== SAVE BOOK STARTED ==========');
+    console.log('💾 [BookService] Book data:', JSON.stringify(book, null, 2));
+    console.log('💾 [BookService] User ID:', userId);
+    
     try {
-      const { data: book, error } = await supabase
+      // Validation
+      if (!book.title) {
+        console.error('❌ [BookService] Validation failed: No title');
+        return { success: false, error: 'Book title is required' };
+      }
+      
+      if (!userId) {
+        console.error('❌ [BookService] Validation failed: No user ID');
+        return { success: false, error: 'User must be logged in' };
+      }
+
+      // Prepare data
+      const bookData = {
+        title: book.title,
+        author: book.author || 'Young Author',
+        genre: book.genre || null,
+        cover_image: book.coverImage || null,
+        pages: book.pages || [],
+        status: 'draft',
+        user_id: userId,
+        updated_at: new Date().toISOString()
+      };
+
+      // Add ID if updating existing book
+      if (book.id) {
+        bookData.id = book.id;
+        console.log('💾 [BookService] Updating existing book, ID:', book.id);
+      } else {
+        bookData.created_at = new Date().toISOString();
+        console.log('💾 [BookService] Creating new book (no ID)');
+      }
+
+      console.log('💾 [BookService] Prepared data:', JSON.stringify(bookData, null, 2));
+      console.log('💾 [BookService] Sending to Supabase...');
+
+      const { data, error } = await supabase
         .from('books')
-        .select(`
-          *,
-          pages (*)
-        `)
-        .eq('id', bookId)
+        .upsert(bookData, { 
+          onConflict: 'id',
+          returning: 'representation' 
+        })
+        .select()
         .single();
-
-      if (error) throw error;
-
-      return book;
-
+      
+      if (error) {
+        console.error('❌ [BookService] Supabase error:', error);
+        console.error('❌ [BookService] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return { 
+          success: false, 
+          error: `Database error: ${error.message}` 
+        };
+      }
+      
+      console.log('✅ [BookService] Book saved successfully!');
+      console.log('✅ [BookService] Saved book data:', data);
+      console.log('💾 [BookService] ========== SAVE BOOK ENDED ==========');
+      
+      return { success: true, data };
+      
     } catch (error: any) {
-      console.error('❌ Error fetching book:', error);
-      return null;
+      console.error('❌ [BookService] Unexpected error:', error);
+      console.error('❌ [BookService] Error message:', error.message);
+      console.error('❌ [BookService] Error stack:', error.stack);
+      console.log('💾 [BookService] ========== SAVE BOOK FAILED ==========');
+      
+      return { 
+        success: false, 
+        error: `Unexpected error: ${error.message}` 
+      };
     }
-  }
+  },
 
-  // Delete a book
-  static async deleteBook(bookId: string, studentId: string): Promise<{ success: boolean; error?: string }> {
+  /**
+   * Publish a book
+   */
+  async publishBook(book: any, userId: string) {
+    console.log('🎉 [BookService] ========== PUBLISH BOOK STARTED ==========');
+    console.log('🎉 [BookService] Book data:', JSON.stringify(book, null, 2));
+    console.log('🎉 [BookService] User ID:', userId);
+    
+    try {
+      // Validation
+      if (!book.title) {
+        console.error('❌ [BookService] Validation failed: No title');
+        return { success: false, error: 'Book title is required' };
+      }
+      
+      if (!userId) {
+        console.error('❌ [BookService] Validation failed: No user ID');
+        return { success: false, error: 'User must be logged in' };
+      }
+
+      const hasContent = book.pages && book.pages.some((page: any) => page.text && page.text.trim());
+      if (!hasContent) {
+        console.error('❌ [BookService] Validation failed: No content');
+        return { 
+          success: false, 
+          error: 'Please write something before publishing' 
+        };
+      }
+
+      // Prepare data
+      const bookData = {
+        title: book.title,
+        author: book.author || 'Young Author',
+        genre: book.genre || null,
+        cover_image: book.coverImage || null,
+        pages: book.pages || [],
+        status: 'published',
+        user_id: userId,
+        updated_at: new Date().toISOString(),
+        published_at: new Date().toISOString()
+      };
+
+      if (book.id) {
+        bookData.id = book.id;
+        console.log('🎉 [BookService] Publishing existing book, ID:', book.id);
+      } else {
+        bookData.created_at = new Date().toISOString();
+        console.log('🎉 [BookService] Publishing new book (no ID)');
+      }
+
+      console.log('🎉 [BookService] Prepared data:', JSON.stringify(bookData, null, 2));
+      console.log('🎉 [BookService] Sending to Supabase...');
+
+      const { data, error } = await supabase
+        .from('books')
+        .upsert(bookData, { 
+          onConflict: 'id',
+          returning: 'representation' 
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ [BookService] Supabase error:', error);
+        console.error('❌ [BookService] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return { 
+          success: false, 
+          error: `Database error: ${error.message}` 
+        };
+      }
+      
+      console.log('✅ [BookService] Book published successfully!');
+      console.log('✅ [BookService] Published book data:', data);
+      console.log('🎉 [BookService] ========== PUBLISH BOOK ENDED ==========');
+      
+      return { success: true, data };
+      
+    } catch (error: any) {
+      console.error('❌ [BookService] Unexpected error:', error);
+      console.error('❌ [BookService] Error message:', error.message);
+      console.error('❌ [BookService] Error stack:', error.stack);
+      console.log('🎉 [BookService] ========== PUBLISH BOOK FAILED ==========');
+      
+      return { 
+        success: false, 
+        error: `Unexpected error: ${error.message}` 
+      };
+    }
+  },
+
+  /**
+   * Delete a book
+   */
+  async deleteBook(bookId: string, userId: string) {
+    console.log('🗑️ [BookService] Deleting book:', bookId);
+    
     try {
       const { error } = await supabase
         .from('books')
         .delete()
         .eq('id', bookId)
-        .eq('student_id', studentId);
-
-      if (error) throw error;
-
-      console.log('✅ Book deleted from database');
+        .eq('user_id', userId);
+      
+      if (error) {
+        console.error('❌ [BookService] Delete error:', error);
+        return { 
+          success: false, 
+          error: error.message || 'Failed to delete book' 
+        };
+      }
+      
+      console.log('✅ [BookService] Book deleted successfully');
       return { success: true };
-
+      
     } catch (error: any) {
-      console.error('❌ Error deleting book:', error);
-      return { success: false, error: error.message };
+      console.error('❌ [BookService] Delete error:', error);
+      return { 
+        success: false, 
+        error: error.message || 'An unexpected error occurred' 
+      };
     }
   }
-}
+};
