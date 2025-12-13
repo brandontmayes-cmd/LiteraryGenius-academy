@@ -247,11 +247,11 @@ ${customPrompt ? `Student's question: "${customPrompt}"` : `Give them 2-3 helpfu
                 <div className="bg-[#ffd700]/10 p-4 rounded-lg border-2 border-[#ffd700]/30">
                   <div className="prose prose-sm max-w-none">
                     <div className="whitespace-pre-wrap">{currentFeedback}</div>
-                    </div>
                   </div>
+                </div>
 
-                  {/* Quick Action Buttons */}
-                  <div className="flex gap-2 flex-wrap">
+                {/* Quick Action Buttons */}
+                <div className="flex gap-2 flex-wrap">
                     <Button 
                       size="sm" 
                       variant="outline"
