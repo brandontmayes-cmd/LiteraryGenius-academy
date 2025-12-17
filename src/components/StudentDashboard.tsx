@@ -403,17 +403,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </CardContent>
         </Card>
 
-        {/* Author Credibility Footer */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md border border-[#ffd700]/30">
-            <Sparkles className="w-4 h-4 text-[#ffd700]" />
-            <span className="text-sm text-gray-600">
-              Created by <span className="font-semibold text-[#1a2744]">Brandon Mayes</span>, 
-              published children's book author
-            </span>
-          </div>
-        </div>
-
         {/* My Drafts Section */}
         {draftBooks.length > 0 && (
           <Card className="shadow-lg bg-white mt-8">
@@ -493,6 +482,17 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </CardContent>
           </Card>
         )}
+
+        {/* Author Credibility Footer - Moved to end */}
+        <div className="mt-12 mb-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md border border-[#ffd700]/30">
+            <Sparkles className="w-4 h-4 text-[#ffd700]" />
+            <span className="text-sm text-gray-600">
+              Created by <span className="font-semibold text-[#1a2744]">Brandon Mayes</span>, 
+              published children's book author
+            </span>
+          </div>
+        </div>
       </main>
 
       {/* Book Viewer Modal */}
