@@ -412,6 +412,86 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </span>
           </div>
         </div>
+
+        {/* My Drafts Section */}
+        {draftBooks.length > 0 && (
+          <Card className="shadow-lg bg-white mt-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl flex items-center gap-2 text-[#1a2744]">
+                    <Edit className="w-6 h-6 text-[#ffd700]" />
+                    My Drafts
+                  </CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">Books you're still working on</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                {draftBooks.map((book) => (
+                  <div 
+                    key={book.id} 
+                    className="group relative"
+                  >
+                    <div 
+                      className="aspect-[3/4] bg-gradient-to-br from-[#1a2744] to-[#2d3e5f] rounded-lg mb-3 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all overflow-hidden relative border-2 border-[#ffd700]/30 cursor-pointer"
+                      onClick={() => {
+                        // Navigate to edit this draft
+                        if (onNavigate) {
+                          // Pass the book to edit
+                          onNavigate('create', book);
+                        }
+                      }}
+                    >
+                      {book.cover_image ? (
+                        <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#ffd700]/10 to-[#ffd700]/5"></div>
+                          <Edit className="w-12 h-12 text-[#ffd700] relative z-10" />
+                        </>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                      
+                      {/* Draft Badge */}
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary" className="text-xs bg-[#ffd700] text-[#1a2744]">
+                          Draft
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <h3 className="font-semibold text-sm mb-1 group-hover:text-[#ffd700] transition-colors line-clamp-2 text-[#1a2744]">
+                      {book.title || 'Untitled'}
+                    </h3>
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                      <span>{book.pages?.length || 0} pages</span>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="flex-1 text-xs h-8 hover:bg-[#ffd700]/10 hover:border-[#ffd700]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onNavigate) {
+                            onNavigate('create', book);
+                          }
+                        }}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       {/* Book Viewer Modal */}

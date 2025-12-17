@@ -29,9 +29,9 @@ export const StudentView = () => {
     setBooks(studentBooks);
   };
 
-  const handleNavigate = (view: string) => {
+  const handleNavigate = (view: string, book: any = null) => {
     if (view === 'create') {
-      setCurrentBook(null); // New book
+      setCurrentBook(book); // Can be null for new book, or existing book for editing
     }
     setCurrentView(view);
   };

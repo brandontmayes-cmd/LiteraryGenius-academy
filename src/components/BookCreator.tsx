@@ -43,16 +43,18 @@ interface Book {
 
 interface BookCreatorProps {
   studentProfile?: any;
+  existingBook?: Book | null;  // Add this
   onSave?: (book: Book) => void;
   onPublish?: (book: Book) => void;
 }
 
 export const BookCreator: React.FC<BookCreatorProps> = ({
   studentProfile,
+  existingBook,  // Add this
   onSave,
   onPublish
 }) => {
-  const [book, setBook] = useState<Book>({
+  const [book, setBook] = useState<Book>(existingBook || {
     id: crypto.randomUUID(),
     title: '',
     author: studentProfile?.name || '',
@@ -69,7 +71,7 @@ export const BookCreator: React.FC<BookCreatorProps> = ({
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(!existingBook); // Don't show if editing
   const [showPrompts, setShowPrompts] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [showWritingAssistant, setShowWritingAssistant] = useState(false);
