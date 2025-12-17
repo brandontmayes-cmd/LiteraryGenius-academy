@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { 
   BookOpen, 
   Pen,
+  Edit,
   Sparkles,
   Camera,
   User,
