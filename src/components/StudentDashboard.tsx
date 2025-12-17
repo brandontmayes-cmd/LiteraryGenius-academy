@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookViewer } from '@/components/BookViewer';
+import { PDFExportButton } from './PDFExportButton';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
@@ -329,12 +330,34 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <CardContent>
             {publishedBooks.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {publishedBooks.map((book) => (
-                  <div 
-                    key={book.id} 
-                    className="group cursor-pointer"
-                    onClick={() => setSelectedBook(book)}
-                  >
+             {publishedBooks.map((book) => (
+  <div key={book.id} className="group relative">
+    {/* Book cover display */}
+    <div className="aspect-[3/4] bg-gradient-to-br...">
+      {/* ... existing cover code ... */}
+    </div>
+    
+    <h3 className="font-semibold text-sm mb-1">
+      {book.title || 'Untitled'}
+    </h3>
+    
+    {/* ADD THIS: */}
+    <div className="flex gap-2 mt-2">
+      <Button 
+        size="sm" 
+        variant="outline"
+        className="flex-1"
+        onClick={() => {/* view book */}}
+      >
+        View
+      </Button>
+      <PDFExportButton 
+        book={book} 
+        className="flex-1 text-xs h-8"
+      />
+    </div>
+  </div>
+))}
                     <div className="aspect-[3/4] bg-gradient-to-br from-[#1a2744] to-[#2d3e5f] rounded-lg mb-3 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all overflow-hidden relative border-2 border-[#ffd700]/30">
                       {book.cover_image ? (
                         <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
