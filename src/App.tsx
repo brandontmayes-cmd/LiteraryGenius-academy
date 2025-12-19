@@ -1,79 +1,82 @@
-import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
-import Index from './pages/Index'
-import NotFound from './pages/NotFound'
-import PaymentSuccess from './pages/PaymentSuccess'
-import PaymentCancelled from './pages/PaymentCancelled'
-import VerifyEmail from './pages/VerifyEmail'
-import ResetPassword from './pages/ResetPassword'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import TermsOfService from './pages/TermsOfService'
-import CookiePolicy from './pages/CookiePolicy'
-import About from './pages/About'
-import Contact from './pages/Contact'
-import ComingSoon from './pages/ComingSoon'
-import Features from './pages/Features'
-import Pricing from './pages/Pricing'
-import ForTeachers from './pages/ForTeachers'
-import ForStudents from './pages/ForStudents'
-import Admin from './pages/Admin'
-import { AccountSettings } from './components/AccountSettings'
-import { ProtectedRoute } from './components/ProtectedRoute'
-import { DashboardRouter } from './components/DashboardRouter'
-import { TeacherDashboard } from './components/TeacherDashboard'
-import { ParentDashboard } from './components/ParentDashboard'
-import { StudentView } from '@/components/StudentView'
+// App.tsx - Main Application Routing with Admin Support
+// Replace your current App.tsx with this
+
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import AppLayout from '@/components/AppLayout'; // Landing page
+import { StudentView } from '@/components/StudentView';
+import { AdminDashboard } from '@/components/AdminDashboard';
 
 function App() {
-  return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<DashboardRouter />} />
-        <Route path="/student-dashboard" element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <StudentView />
-          </ProtectedRoute>
-        } />
-        <Route path="/teacher-dashboard" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <TeacherDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/parent-dashboard" element={
-          <ProtectedRoute allowedRoles={['parent']}>
-            <ParentDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <Admin />
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <AccountSettings />
-          </ProtectedRoute>
-        } />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/cookie-policy" element={<CookiePolicy />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/for-teachers" element={<ForTeachers />} />
-        <Route path="/for-students" element={<ForStudents />} />
-        <Route path="/careers" element={<ComingSoon />} />
-        <Route path="/blog" element={<ComingSoon />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AuthProvider>
-  )
+  const { user, loading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+
+  // Check if user is admin when they log in
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setCheckingAdmin(false);
+        return;
+      }
+
+      try {
+        // Check profiles table for admin flag
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('is_admin, role')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(profile?.is_admin === true || profile?.role === 'admin');
+          console.log('Admin status:', profile?.is_admin, 'Role:', profile?.role);
+        }
+      } catch (error) {
+        console.error('Unexpected error checking admin:', error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  // Show loading while checking auth or admin status
+  if (loading || checkingAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a2744] to-[#2d3e5f]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffd700] border-solid mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not logged in - show landing page
+  if (!user) {
+    return <AppLayout />;
+  }
+
+  // Logged in as admin - show admin dashboard
+  if (isAdmin) {
+    console.log('🔑 Admin user detected - showing AdminDashboard');
+    return <AdminDashboard onLogout={async () => {
+      await supabase.auth.signOut();
+      window.location.reload();
+    }} />;
+  }
+
+  // Logged in as student - show student view
+  console.log('👤 Regular user detected - showing StudentView');
+  return <StudentView />;
 }
 
-export default App
+export default App;
