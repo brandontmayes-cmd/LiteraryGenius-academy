@@ -29,7 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { BookService } from '@/services/bookService';
+import { AdminService } from '@/services/adminService';
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -59,36 +59,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      // TODO: Implement actual admin data fetching
-      // This would need admin-specific database queries
+      console.log('📊 [AdminDashboard] Loading admin data...');
       
-      // For now, showing structure
-      setStats({
-        totalStudents: 15, // Mock data
-        totalBooks: 47,
-        publishedBooks: 32,
-        draftBooks: 15,
-        activeToday: 8,
-        totalPages: 234
-      });
+      // Get real statistics
+      const statsResult = await AdminService.getStatistics();
+      if (statsResult.success && statsResult.data) {
+        setStats(statsResult.data);
+        console.log('✅ [AdminDashboard] Stats loaded:', statsResult.data);
+      }
 
-      // Mock student data
-      setStudents([
-        {
-          id: '1',
-          name: 'Emma Wilson',
-          email: 'parent1@email.com',
-          booksCount: 5,
-          publishedCount: 3,
-          lastActive: new Date(),
-          joinDate: new Date('2024-11-01'),
-          membership: 'free'
-        },
-        // More mock students...
-      ]);
+      // Get real students
+      const studentsResult = await AdminService.getAllStudents();
+      if (studentsResult.success) {
+        setStudents(studentsResult.data);
+        console.log(`✅ [AdminDashboard] Loaded ${studentsResult.data.length} students`);
+      }
+
+      // Get real books
+      const booksResult = await AdminService.getAllBooks();
+      if (booksResult.success) {
+        setAllBooks(booksResult.data);
+        console.log(`✅ [AdminDashboard] Loaded ${booksResult.data.length} books`);
+      }
 
     } catch (error) {
-      console.error('Error loading admin data:', error);
+      console.error('❌ [AdminDashboard] Error loading admin data:', error);
     } finally {
       setLoading(false);
     }
